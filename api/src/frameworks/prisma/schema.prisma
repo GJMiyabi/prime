@@ -14,3 +14,52 @@ model User {
   password String  @db.VarChar(255)
   createdAt DateTime @default(now())
 }
+
+model Person {                  // 利用者（メール不要）
+  id        String   @id @default(uuid())
+  name      String
+  contacts  ContactAddress[]
+  principal Principal?
+}
+
+model ContactAddress {
+  id       String  @id @default(uuid())
+  personId String
+  person   Person  @relation(fields: [personId], references: [id])
+  type     ContactType
+  value    String
+}
+
+enum ContactType { 
+  EMAIL 
+  PHONE 
+  ADDRESS
+}
+
+model Principal {
+  id        String   @id @default(uuid())
+  personId  String   @unique
+  person    Person   @relation(fields: [personId], references: [id])
+  kind      PrincipalKind // ADMIN/TEACHER/STUDENT/STAKEHOLDER など
+
+  account   Account?
+}
+
+enum PrincipalKind { 
+  ADMIN 
+  TEACHER
+  STUDENT　
+  STAKEHOLDER
+}
+
+/// ログイン資格情報（任意）
+model Account {
+  id           String    @id @default(uuid())
+  principalId  String    @unique
+  principal    Principal @relation(fields: [principalId], references: [id])
+
+  username     String    @unique
+  password     String    // ハッシュ
+  isActive     Boolean   @default(true)
+}
+
