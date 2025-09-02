@@ -2,6 +2,7 @@ import { Id } from '../value-object/id';
 import { ContactAddress } from './contact-address';
 
 type PersonProps = {
+  id: Id;
   name: string;
   contacts?: ContactAddress[];
   principalId?: string;
@@ -14,7 +15,7 @@ export class Person {
   readonly principalId?: string;
 
   constructor(props: PersonProps) {
-    this.id = new Id();
+    this.id = props.id;
     this.name = props.name;
     this.contacts = props.contacts ?? [];
     this.principalId = props.principalId;
