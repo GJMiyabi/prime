@@ -1,4 +1,3 @@
-import { Id } from '../value-object/id';
 import { ContactAddress } from '../entities/contact-address';
 
 export abstract class IContactAddressCommandRepository {
@@ -6,5 +5,7 @@ export abstract class IContactAddressCommandRepository {
 }
 
 export abstract class IContactAddressQueryRepository {
-  abstract findByPersonId(personId: Id): Promise<ContactAddress[] | undefined>;
+  abstract findByPersonId(
+    personId: string,
+  ): Promise<ContactAddress[] | undefined>;
 }

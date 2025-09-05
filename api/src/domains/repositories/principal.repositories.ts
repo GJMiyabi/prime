@@ -1,4 +1,3 @@
-import { Id } from '../value-object/id';
 import { Principal } from '../entities/principal';
 
 export abstract class IPrincipalCommandRepository {
@@ -6,5 +5,5 @@ export abstract class IPrincipalCommandRepository {
 }
 
 export abstract class IPrincipalQueryRepository {
-  abstract findByPersonId(personId: Id): Promise<Principal | undefined>;
+  abstract findByPersonId(personId: string): Promise<Principal | undefined>;
 }

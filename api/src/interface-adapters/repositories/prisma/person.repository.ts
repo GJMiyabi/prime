@@ -14,3 +14,38 @@ function prismaToPerson(prisma: Prisma) {
     contacts: [],
   });
 }
+
+export class PersonCommandRepository implements IPersonCommandRepository {
+  constructor(private readonly prisma = PrismaClientSingleton.instance) {}
+
+  async create(person: Person): Promise<Person> {
+    const newPerson = await this.prisma.person.create({
+      data: {
+        id: person.id.value,
+        name: person.getName(),
+      },
+    });
+
+    return prismaToPerson(newPerson);
+  }
+}
+
+export class PersonQueryRepository implements IPersonQueryRepository {
+  constructor(private readonly prisma = PrismaClientSingleton.instance) {}
+
+  async find(id: Id): Promise<Person | undefined> {
+    const person = await this.prisma.person.findUnique({
+      where: { id: id.value },
+    });
+    if (person) {
+      return prismaToPerson(person);
+    } else {
+      return undefined;
+    }
+  }
+
+  async list(): Promise<Person[]> {
+    const persons = await this.prisma.person.findMany();
+    return persons.map(prismaToPerson);
+  }
+}
