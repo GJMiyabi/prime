@@ -1,3 +1,30 @@
+enum PrincipalKind {
+  ADMIN
+  TEACHER
+  STUDENT
+  STAKEHOLDER
+}
+
+type Principal {
+  id: ID!
+  kind: PrincipalKind
+}
+
+type Account {
+  id: ID!
+  username: String
+  provider: String
+  providerSub: String
+}
+
+type Person {
+  id: ID!
+  name: String!
+  principal: Principal
+  account: Account
+}
+
+# Single person fetch
 type Query {
-  user(input: ID!): User!
+  person(id: ID!): Person
 }

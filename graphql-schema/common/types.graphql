@@ -1,0 +1,7 @@
+# Shared enums
+
+enum ContactType {
+  EMAIL
+  PHONE
+  ADDRESS
+}

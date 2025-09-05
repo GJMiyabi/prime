@@ -4,8 +4,12 @@ export type AccountProps = {
   id?: Id;
   principalId: Id;
   username: string;
-  password: string; // hashed password
+  password: string;
   isActive?: boolean;
+  provider?: string;
+  providerSub?: string | null;
+  email?: string | null;
+  lastLoginAt?: Date | null;
 };
 
 export class Account {
@@ -14,6 +18,10 @@ export class Account {
   readonly username: string;
   readonly password: string;
   readonly isActive: boolean;
+  readonly provider: string;
+  readonly providerSub?: string | null;
+  readonly email?: string | null;
+  readonly lastLoginAt?: Date | null;
 
   constructor(props: AccountProps) {
     this.id = props.id ?? new Id();
@@ -21,6 +29,10 @@ export class Account {
     this.username = props.username;
     this.password = props.password;
     this.isActive = props.isActive ?? true;
+    this.provider = props.provider ?? 'auth0';
+    this.providerSub = props.providerSub ?? null;
+    this.email = props.email ?? null;
+    this.lastLoginAt = props.lastLoginAt ?? null;
   }
 
   getId(): string {
@@ -41,5 +53,21 @@ export class Account {
 
   isEnabled(): boolean {
     return this.isActive;
+  }
+
+  getProvider(): string {
+    return this.provider;
+  }
+
+  getProviderSub(): string | null | undefined {
+    return this.providerSub ?? null;
+  }
+
+  getEmail(): string | null | undefined {
+    return this.email ?? null;
+  }
+
+  getLastLoginAt(): Date | null | undefined {
+    return this.lastLoginAt ?? null;
   }
 }

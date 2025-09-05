@@ -7,14 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  password String  @db.VarChar(255)
-  createdAt DateTime @default(now())
-}
-
 model Person {                  // 利用者（メール不要）
   id        String   @id @default(uuid())
   name      String
@@ -60,6 +52,12 @@ model Account {
 
   username     String    @unique
   password     String    // ハッシュ
+  provider     String    @default("auth0")   
+  providerSub  String?    @unique             
+  email        String?                        
   isActive     Boolean   @default(true)
+
+  // 監査/同期補助（任意）
+  lastLoginAt  DateTime?
 }
 

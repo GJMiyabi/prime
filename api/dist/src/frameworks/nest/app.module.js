@@ -13,11 +13,17 @@ const apollo_1 = require("@nestjs/apollo");
 const graphql_scalars_1 = require("graphql-scalars");
 const graphql_context_1 = require("./shared/graphql/graphql.context");
 const app_controller_1 = require("./shared/app.controller");
-const user_repositories_1 = require("../../domains/repositories/user.repositories");
-const user_repository_1 = require("../../interface-adapters/repositories/prisma/user.repository");
-const input_port_1 = require("../../usecases/user/input-port");
-const interactor_1 = require("../../usecases/user/interactor");
-const user_resolver_1 = require("./user/graphql/user.resolver");
+const input_port_1 = require("../../usecases/person/input-port");
+const interactor_1 = require("../../usecases/person/interactor");
+const person_repository_1 = require("../../interface-adapters/repositories/prisma/person.repository");
+const person_repositories_1 = require("../../domains/repositories/person.repositories");
+const person_resolver_1 = require("./person/person.resolver");
+const principal_repositories_1 = require("../../domains/repositories/principal.repositories");
+const principal_repository_1 = require("../../interface-adapters/repositories/prisma/principal.repository");
+const account_repositories_1 = require("../../domains/repositories/account.repositories");
+const account_repository_1 = require("../../interface-adapters/repositories/prisma/account.repository");
+const contract_address_repositories_1 = require("../../domains/repositories/contract-address.repositories");
+const contract_address_repository_1 = require("../../interface-adapters/repositories/prisma/contract-address.repository");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -33,11 +39,26 @@ exports.AppModule = AppModule = __decorate([
             }),
         ],
         providers: [
-            { provide: user_repositories_1.IUserCommandRepository, useClass: user_repository_1.UserCommandRepository },
-            { provide: user_repositories_1.IUserQueryRepository, useClass: user_repository_1.UserQueryRepository },
-            { provide: input_port_1.IUserInputPort, useClass: interactor_1.UserInteractor },
-            user_resolver_1.UserMutationResolver,
-            user_resolver_1.UserQueryResolver,
+            { provide: person_repositories_1.IPersonCommandRepository, useClass: person_repository_1.PersonCommandRepository },
+            { provide: person_repositories_1.IPersonQueryRepository, useClass: person_repository_1.PersonQueryRepository },
+            { provide: input_port_1.IPersonInputPort, useClass: interactor_1.PersonInteractor },
+            {
+                provide: principal_repositories_1.IPrincipalCommandRepository,
+                useClass: principal_repository_1.PrincipalCommandRepository,
+            },
+            { provide: principal_repositories_1.IPrincipalQueryRepository, useClass: principal_repository_1.PrincipalQueryRepository },
+            { provide: account_repositories_1.IAccountCommandRepository, useClass: account_repository_1.AccountCommandRepository },
+            { provide: account_repositories_1.IAccountQueryRepository, useClass: account_repository_1.AccountQueryRepository },
+            {
+                provide: contract_address_repositories_1.IContactAddressCommandRepository,
+                useClass: contract_address_repository_1.ContactAddressCommandRepository,
+            },
+            {
+                provide: contract_address_repositories_1.IContactAddressQueryRepository,
+                useClass: contract_address_repository_1.ContactAddressQueryRepository,
+            },
+            person_resolver_1.PersonMutationResolver,
+            person_resolver_1.PersonQueryResolver,
         ],
         controllers: [app_controller_1.AppController],
     })

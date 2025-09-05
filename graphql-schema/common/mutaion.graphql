@@ -1,17 +1,17 @@
-type User {
-  id: ID!
-  email: String!
-  name: String
-  # passwordHash は通常は公開しないので省略
+input AdminPersonCreateInput {
+  id: ID
+  name: String!
+  value: String!
+  type: ContactType!
 }
 
-input UserSaveInputDto {
-  id: ID
-  email: String!
-  name: String
-  password: String!
+type AdminPerson {
+  id: ID!
+  name: String!
+  value: String!
+  type: ContactType!
 }
 
 type Mutation {
-  saveUser(input: UserSaveInputDto!): User!
+  saveAdminPeron(input: AdminPersonCreateInput!): AdminPerson!
 }
