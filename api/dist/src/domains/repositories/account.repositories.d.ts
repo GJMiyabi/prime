@@ -4,4 +4,5 @@ export declare abstract class IAccountCommandRepository {
 }
 export declare abstract class IAccountQueryRepository {
     abstract findByPrincipalId(principalId: string): Promise<Account | undefined>;
+    abstract findByUsername(username: string): Promise<Account | undefined>;
 }

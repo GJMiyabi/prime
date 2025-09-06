@@ -28,34 +28,85 @@ export type Scalars = {
   Date: { input: any; output: any };
 };
 
-export type Mutation = {
-  __typename?: 'Mutation';
-  saveUser: User;
+export type Account = {
+  __typename?: 'Account';
+  id: Scalars['ID']['output'];
+  provider?: Maybe<Scalars['String']['output']>;
+  providerSub?: Maybe<Scalars['String']['output']>;
+  username?: Maybe<Scalars['String']['output']>;
 };
 
-export type MutationSaveUserArgs = {
-  input: UserSaveInputDto;
+export type AdminPerson = {
+  __typename?: 'AdminPerson';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  type: ContactType;
+  value: Scalars['String']['output'];
 };
+
+export type AdminPersonCreateInput = {
+  id?: InputMaybe<Scalars['ID']['input']>;
+  name: Scalars['String']['input'];
+  type: ContactType;
+  value: Scalars['String']['input'];
+};
+
+export type AuthPayload = {
+  __typename?: 'AuthPayload';
+  accessToken: Scalars['String']['output'];
+};
+
+export enum ContactType {
+  Address = 'ADDRESS',
+  Email = 'EMAIL',
+  Phone = 'PHONE',
+}
+
+export type LoginInput = {
+  password: Scalars['String']['input'];
+  username: Scalars['String']['input'];
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  login?: Maybe<AuthPayload>;
+  saveAdminPeron: AdminPerson;
+};
+
+export type MutationLoginArgs = {
+  input: LoginInput;
+};
+
+export type MutationSaveAdminPeronArgs = {
+  input: AdminPersonCreateInput;
+};
+
+export type Person = {
+  __typename?: 'Person';
+  account?: Maybe<Account>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  principal?: Maybe<Principal>;
+};
+
+export type Principal = {
+  __typename?: 'Principal';
+  id: Scalars['ID']['output'];
+  kind?: Maybe<PrincipalKind>;
+};
+
+export enum PrincipalKind {
+  Admin = 'ADMIN',
+  Stakeholder = 'STAKEHOLDER',
+  Student = 'STUDENT',
+  Teacher = 'TEACHER',
+}
 
 export type Query = {
   __typename?: 'Query';
-  user: User;
+  person?: Maybe<Person>;
 };
 
-export type QueryUserArgs = {
-  input: Scalars['ID']['input'];
-};
-
-export type User = {
-  __typename?: 'User';
-  email: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  name?: Maybe<Scalars['String']['output']>;
-};
-
-export type UserSaveInputDto = {
-  email: Scalars['String']['input'];
-  id?: InputMaybe<Scalars['ID']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  password: Scalars['String']['input'];
+export type QueryPersonArgs = {
+  id: Scalars['ID']['input'];
 };

@@ -15,3 +15,16 @@ type AdminPerson {
 type Mutation {
   saveAdminPeron(input: AdminPersonCreateInput!): AdminPerson!
 }
+
+type AuthPayload {
+  accessToken: String!
+}
+
+input LoginInput {
+  username: String!
+  password: String!
+}
+
+type Mutation {
+  login(input: LoginInput!): AuthPayload
+}

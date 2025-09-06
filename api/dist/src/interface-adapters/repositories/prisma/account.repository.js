@@ -45,6 +45,12 @@ class AccountQueryRepository {
         });
         return row ? prismToAccount(row) : undefined;
     }
+    async findByUsername(username) {
+        const row = await this.prisma.account.findUnique({
+            where: { username },
+        });
+        return row ? prismToAccount(row) : undefined;
+    }
 }
 exports.AccountQueryRepository = AccountQueryRepository;
 //# sourceMappingURL=account.repository.js.map

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
+import { AuthModule } from './auth/auth.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { DateResolver } from 'graphql-scalars';
 import { GraphContext } from './shared/graphql/graphql.context';
@@ -53,6 +54,7 @@ import {
       resolvers: { Date: DateResolver },
       playground: true,
     }),
+    AuthModule,
   ],
   providers: [
     { provide: IPersonCommandRepository, useClass: PersonCommandRepository },

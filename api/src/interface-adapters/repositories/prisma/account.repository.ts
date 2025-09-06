@@ -47,4 +47,12 @@ export class AccountQueryRepository implements IAccountQueryRepository {
 
     return row ? prismToAccount(row) : undefined;
   }
+
+  async findByUsername(username: string): Promise<Account | undefined> {
+    const row = await this.prisma.account.findUnique({
+      where: { username },
+    });
+
+    return row ? prismToAccount(row) : undefined;
+  }
 }

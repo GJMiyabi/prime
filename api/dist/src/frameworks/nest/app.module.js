@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const graphql_1 = require("@nestjs/graphql");
+const auth_module_1 = require("./auth/auth.module");
 const apollo_1 = require("@nestjs/apollo");
 const graphql_scalars_1 = require("graphql-scalars");
 const graphql_context_1 = require("./shared/graphql/graphql.context");
@@ -37,6 +38,7 @@ exports.AppModule = AppModule = __decorate([
                 resolvers: { Date: graphql_scalars_1.DateResolver },
                 playground: true,
             }),
+            auth_module_1.AuthModule,
         ],
         providers: [
             { provide: person_repositories_1.IPersonCommandRepository, useClass: person_repository_1.PersonCommandRepository },

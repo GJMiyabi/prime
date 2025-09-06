@@ -9,4 +9,5 @@ export declare class AccountQueryRepository implements IAccountQueryRepository {
     private readonly prisma;
     constructor(prisma?: import(".prisma/client").PrismaClient<import(".prisma/client").Prisma.PrismaClientOptions, never, import("@prisma/client/runtime/library").DefaultArgs>);
     findByPrincipalId(principalId: string): Promise<Account | undefined>;
+    findByUsername(username: string): Promise<Account | undefined>;
 }
