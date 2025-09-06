@@ -35,6 +35,12 @@ export class AccountCommandRepository implements IAccountCommandRepository {
 
     return prismToAccount(newData);
   }
+
+  async delete(principalId: Id): Promise<void> {
+    await this.prisma.account.delete({
+      where: { principalId: principalId.value },
+    });
+  }
 }
 
 export class AccountQueryRepository implements IAccountQueryRepository {

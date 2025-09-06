@@ -27,6 +27,10 @@ let PersonMutationResolver = class PersonMutationResolver {
             ...admin,
         };
     }
+    async deletePerson(id) {
+        await this.personInputport.delete(id);
+        return true;
+    }
 };
 exports.PersonMutationResolver = PersonMutationResolver;
 __decorate([
@@ -36,6 +40,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], PersonMutationResolver.prototype, "saveAdminUser", null);
+__decorate([
+    (0, graphql_1.Mutation)('deletePerson'),
+    __param(0, (0, graphql_1.Args)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], PersonMutationResolver.prototype, "deletePerson", null);
 exports.PersonMutationResolver = PersonMutationResolver = __decorate([
     (0, graphql_1.Resolver)(),
     __metadata("design:paramtypes", [input_port_1.IPersonInputPort])

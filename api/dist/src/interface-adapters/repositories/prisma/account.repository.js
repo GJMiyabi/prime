@@ -32,6 +32,11 @@ class AccountCommandRepository {
         });
         return prismToAccount(newData);
     }
+    async delete(principalId) {
+        await this.prisma.account.delete({
+            where: { principalId: principalId.value },
+        });
+    }
 }
 exports.AccountCommandRepository = AccountCommandRepository;
 class AccountQueryRepository {

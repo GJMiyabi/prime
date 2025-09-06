@@ -47,6 +47,12 @@ export class ContactAddressCommandRepository
 
     return prismaToContactAddress(newData);
   }
+
+  async delete(personId: Id): Promise<void> {
+    await this.prisma.contactAddress.deleteMany({
+      where: { personId: personId.value },
+    });
+  }
 }
 
 export class ContactAddressQueryRepository

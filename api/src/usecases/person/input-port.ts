@@ -7,6 +7,7 @@ export abstract class IPersonInputPort {
   abstract createAdmin(
     input: AdminPersonCreateDto,
   ): Promise<AdminPersonCreateDto>;
+  abstract delete(id: string): Promise<void>;
 
   abstract find(id: string): Promise<PersonOutputDto | undefined>;
 }

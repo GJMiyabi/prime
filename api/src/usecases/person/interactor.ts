@@ -105,4 +105,8 @@ export class PersonInteractor implements IPersonInputPort {
       return undefined;
     }
   }
+
+  async delete(id: string): Promise<void> {
+    await this.personCommandRepository.delete(new Id(id));
+  }
 }

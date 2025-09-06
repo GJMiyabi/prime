@@ -12,10 +12,6 @@ type AdminPerson {
   type: ContactType!
 }
 
-type Mutation {
-  saveAdminPeron(input: AdminPersonCreateInput!): AdminPerson!
-}
-
 type AuthPayload {
   accessToken: String!
 }
@@ -27,4 +23,6 @@ input LoginInput {
 
 type Mutation {
   login(input: LoginInput!): AuthPayload
+  deletePerson(id: ID!): Boolean!
+  saveAdminPeron(input: AdminPersonCreateInput!): AdminPerson!
 }

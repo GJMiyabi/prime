@@ -69,8 +69,13 @@ export type LoginInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  deletePerson: Scalars['Boolean']['output'];
   login?: Maybe<AuthPayload>;
   saveAdminPeron: AdminPerson;
+};
+
+export type MutationDeletePersonArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type MutationLoginArgs = {

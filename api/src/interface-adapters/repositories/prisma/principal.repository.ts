@@ -44,6 +44,10 @@ export class PrincipalCommandRepository implements IPrincipalCommandRepository {
     });
     return prismaToPrincipal(newData);
   }
+
+  async delete(personId: Id): Promise<void> {
+    await this.prisma.principal.delete({ where: { personId: personId.value } });
+  }
 }
 
 export class PrincipalQueryRepository implements IPrincipalQueryRepository {

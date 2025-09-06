@@ -17,6 +17,12 @@ export class PersonMutationResolver {
       ...admin,
     };
   }
+
+  @Mutation('deletePerson')
+  async deletePerson(@Args('id') id: string): Promise<boolean> {
+    await this.personInputport.delete(id);
+    return true;
+  }
 }
 
 @Resolver()

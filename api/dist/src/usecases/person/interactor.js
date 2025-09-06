@@ -94,6 +94,9 @@ let PersonInteractor = class PersonInteractor {
             return undefined;
         }
     }
+    async delete(id) {
+        await this.personCommandRepository.delete(new id_1.Id(id));
+    }
 };
 exports.PersonInteractor = PersonInteractor;
 exports.PersonInteractor = PersonInteractor = __decorate([

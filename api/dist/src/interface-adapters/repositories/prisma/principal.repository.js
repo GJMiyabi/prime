@@ -40,6 +40,9 @@ class PrincipalCommandRepository {
         });
         return prismaToPrincipal(newData);
     }
+    async delete(personId) {
+        await this.prisma.principal.delete({ where: { personId: personId.value } });
+    }
 }
 exports.PrincipalCommandRepository = PrincipalCommandRepository;
 class PrincipalQueryRepository {

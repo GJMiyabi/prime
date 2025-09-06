@@ -1,6 +1,8 @@
 import { Account } from '../entities/account';
+import { Id } from '../value-object/id';
 export declare abstract class IAccountCommandRepository {
     abstract create(data: Account): Promise<Account>;
+    abstract delete(principalId: Id): Promise<void>;
 }
 export declare abstract class IAccountQueryRepository {
     abstract findByPrincipalId(principalId: string): Promise<Account | undefined>;

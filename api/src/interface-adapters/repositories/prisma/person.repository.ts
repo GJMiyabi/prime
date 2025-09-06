@@ -28,6 +28,24 @@ export class PersonCommandRepository implements IPersonCommandRepository {
 
     return prismaToPerson(newPerson);
   }
+
+  async delete(id: Id): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.contactAddress.deleteMany({ where: { personId: id.value } });
+
+      const principal = await tx.principal.findUnique({
+        where: { personId: id.value },
+        select: { id: true },
+      });
+
+      if (principal) {
+        await tx.account.deleteMany({ where: { principalId: principal.id } });
+        await tx.principal.delete({ where: { id: principal.id } });
+      }
+
+      await tx.person.delete({ where: { id: id.value } });
+    });
+  }
 }
 
 export class PersonQueryRepository implements IPersonQueryRepository {

@@ -15,4 +15,5 @@ export declare class PersonInteractor implements IPersonInputPort {
     constructor(personCommandRepository: IPersonCommandRepository, personQueryRepository: IPersonQueryRepository, principalQueryRepository: IPrincipalQueryRepository, principalCommandRepository: IPrincipalCommandRepository, accountCommandRepository: IAccountCommandRepository, accountQueryRepository: IAccountQueryRepository, contactAddressQueryRepository: IContactAddressQueryRepository, contactAddressCommandRepository: IContactAddressCommandRepository);
     createAdmin(input: AdminPersonCreateDto): Promise<AdminPersonCreateDto>;
     find(id: string): Promise<PersonOutputDto | undefined>;
+    delete(id: string): Promise<void>;
 }

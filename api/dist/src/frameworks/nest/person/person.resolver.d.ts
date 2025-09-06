@@ -9,6 +9,7 @@ export declare class PersonMutationResolver {
         type: import("../../../domains/type/contact").ContactType;
         __type: string;
     }>;
+    deletePerson(id: string): Promise<boolean>;
 }
 export declare class PersonQueryResolver {
     private readonly personInputPort;
