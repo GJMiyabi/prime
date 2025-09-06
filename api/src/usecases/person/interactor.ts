@@ -82,28 +82,42 @@ export class PersonInteractor implements IPersonInputPort {
     };
   }
 
-  async find(id: string): Promise<PersonOutputDto | undefined> {
-    const person = await this.personQueryRepository.find(new Id(id));
-    const principal = await this.principalQueryRepository.findByPersonId(id);
-    const address = await this.contactAddressQueryRepository.findByPersonId(id);
+  async find(
+    id: string,
+    include?: {
+      contacts?: boolean;
+      principal?: { include?: { account?: boolean } };
+    },
+  ): Promise<PersonOutputDto | undefined> {
+    const person = await this.personQueryRepository.find(new Id(id), include);
+    if (!person) return undefined;
+
+    let principal: Principal | undefined;
     let account: Account | undefined;
-    if (principal) {
-      account = await this.accountQueryRepository.findByPrincipalId(
-        principal.id.value,
-      );
+    let address: ContactAddress[] | undefined;
+
+    if (include?.principal) {
+      principal = await this.principalQueryRepository.findByPersonId(id);
+      if (principal && include.principal.include?.account) {
+        account = await this.accountQueryRepository.findByPrincipalId(
+          principal.id.value,
+        );
+      }
     }
 
-    if (person) {
-      return {
-        id: person.id.value,
-        name: person.getName(),
-        principal: principal ?? undefined,
-        contactAddress: address ?? undefined,
-        account: account ?? undefined,
-      };
-    } else {
-      return undefined;
+    if (include?.contacts) {
+      address = await this.contactAddressQueryRepository.findByPersonId(id);
     }
+
+    const result = {
+      id: person.id.value,
+      name: person.getName(),
+      ...(include?.principal ? { principal } : {}),
+      ...(include?.principal?.include?.account ? { account } : {}),
+      ...(include?.contacts ? { contactAddress: address } : {}),
+    } as PersonOutputDto;
+
+    return result;
   }
 
   async delete(id: string): Promise<void> {

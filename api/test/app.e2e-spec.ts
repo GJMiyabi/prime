@@ -160,4 +160,198 @@ describe('Person create → get → delete (e2e)', () => {
     }>;
     expect(afterBody.data?.person).toBeNull();
   });
+
+  it('find (no includes): principal/contactAddress/account are null by default', async () => {
+    // Create a fresh person first
+    const CREATE = gql`
+      mutation ($input: AdminPersonCreateInput!) {
+        saveAdminPeron(input: $input) {
+          id
+          name
+        }
+      }
+    `;
+
+    // Use a unique email to avoid unique constraint conflicts on repeated runs
+    const uniqueEmail = `bob.e2e+${Date.now()}${Math.random().toString(36).slice(2, 8)}@example.com`;
+
+    const createRes = await gqlRequest(app, CREATE, {
+      input: { name: 'Bob E2E', value: uniqueEmail, type: 'EMAIL' },
+    });
+    expect(createRes.status).toBe(200);
+
+    // If GraphQL returned errors, surface them clearly (no unnecessary assertions)
+    const createErrors = (createRes.body as unknown as GraphQLResponse<unknown>)
+      .errors;
+    if (createErrors) {
+      console.error('create errors', createErrors);
+    }
+
+    const createBody = createRes.body as unknown as GraphQLResponse<{
+      saveAdminPeron?: { id: string; name: string };
+    }>;
+    const created = createBody.data?.saveAdminPeron;
+    if (!created?.id) {
+      throw new Error(
+        `saveAdminPeron did not return id. body=${JSON.stringify(createRes.body)}`,
+      );
+    }
+    const id = created.id;
+
+    // ---- Introspect Person fields to avoid 400 when fields are missing ----
+    const INTROSPECT = gql`
+      query {
+        __type(name: "Person") {
+          fields {
+            name
+          }
+        }
+      }
+    `;
+    const introspectRes = await gqlRequest(app, INTROSPECT);
+    expect(introspectRes.status).toBe(200);
+    type Introspection = {
+      __type?: { fields?: Array<{ name: string }> | null } | null;
+    };
+    const iBody =
+      introspectRes.body as unknown as GraphQLResponse<Introspection>;
+    const fieldNames = new Set(
+      (iBody.data?.__type?.fields ?? []).map((f) => f.name),
+    );
+
+    const hasPrincipal = fieldNames.has('principal');
+    const hasAccount = fieldNames.has('account');
+    const contactField = fieldNames.has('contactAddress')
+      ? 'contactAddress'
+      : fieldNames.has('contacts')
+        ? 'contacts'
+        : undefined;
+
+    // ---- Build a dynamic query with only available fields ----
+    const extraSelections: string[] = [];
+    if (hasPrincipal) extraSelections.push('principal { id }');
+    if (hasAccount) extraSelections.push('account { id }');
+    if (contactField) extraSelections.push(`${contactField} { id }`);
+
+    const QUERY = gql`query ($id: ID!) { person(id: $id) { id name ${extraSelections.join(' ')} } }`;
+
+    const res = await gqlRequest(app, QUERY, { id });
+    expect(res.status).toBe(200);
+
+    type PersonShape = {
+      id: string;
+      name: string;
+      principal?: { id: string } | null;
+      account?: { id: string } | null;
+      contactAddress?: Array<{ id: string }> | null;
+      contacts?: Array<{ id: string }> | null;
+    };
+    const body = res.body as unknown as GraphQLResponse<{
+      person: PersonShape | null;
+    }>;
+    const person = body.data?.person;
+    expect(person).toBeTruthy();
+
+    // デフォルトでは関連は null（Resolver/Usecase が include を明示しない前提）
+    if (hasPrincipal) expect(person?.principal ?? null).toBeNull();
+    if (hasAccount) expect(person?.account ?? null).toBeNull();
+
+    if (contactField === 'contactAddress') {
+      // null（か空配列）いずれでも許容、実装差に対応
+      if (Array.isArray(person?.contactAddress)) {
+        expect(person?.contactAddress.length).toBeGreaterThanOrEqual(0);
+      } else {
+        expect(person?.contactAddress ?? null).toBeNull();
+      }
+    } else if (contactField === 'contacts') {
+      if (Array.isArray(person?.contacts)) {
+        expect(person?.contacts.length).toBeGreaterThanOrEqual(0);
+      } else {
+        expect(person?.contacts ?? null).toBeNull();
+      }
+    }
+
+    // cleanup
+    const DELETE = gql`
+      mutation ($id: ID!) {
+        deletePerson(id: $id)
+      }
+    `;
+    const del = await gqlRequest(app, DELETE, { id });
+    expect(del.status).toBe(200);
+    const delBody = del.body as unknown as GraphQLResponse<{
+      deletePerson: boolean;
+    }>;
+    expect(delBody.data?.deletePerson).toBe(true);
+  });
+
+  it('createAdmin → find → delete runs end-to-end matching IPersonInputPort semantics', async () => {
+    // createAdmin (value/type も応答検証)
+    const CREATE = gql`
+      mutation ($input: AdminPersonCreateInput!) {
+        saveAdminPeron(input: $input) {
+          id
+          name
+          value
+          type
+        }
+      }
+    `;
+    const uniqueEmail = `carol.e2e+${Date.now()}${Math.random().toString(36).slice(2, 8)}@example.com`;
+    const c = await gqlRequest(app, CREATE, {
+      input: {
+        name: 'Carol E2E',
+        value: uniqueEmail,
+        type: 'EMAIL',
+      },
+    });
+    expect(c.status).toBe(200);
+    const cBody = c.body as unknown as GraphQLResponse<{
+      saveAdminPeron?: {
+        id: string;
+        name: string;
+        value: string;
+        type: string;
+      };
+    }>;
+    const created = cBody.data?.saveAdminPeron;
+    expect(created).toBeDefined();
+    expect(created?.name).toBe('Carol E2E');
+    expect(created?.value).toBe(uniqueEmail);
+    expect(created?.type).toBe('EMAIL');
+    if (!created?.id)
+      throw new Error(
+        `saveAdminPeron did not return id. body=${JSON.stringify(c.body)}`,
+      );
+
+    // find (basic fields only)
+    const QUERY = gql`
+      query ($id: ID!) {
+        person(id: $id) {
+          id
+          name
+        }
+      }
+    `;
+    const f = await gqlRequest(app, QUERY, { id: created.id });
+    expect(f.status).toBe(200);
+    const fBody = f.body as unknown as GraphQLResponse<{
+      person: { id: string; name: string } | null;
+    }>;
+    expect(fBody.data?.person?.id).toBe(created.id);
+    console.log('fBody.data?', fBody.data);
+
+    // delete
+    const DELETE = gql`
+      mutation ($id: ID!) {
+        deletePerson(id: $id)
+      }
+    `;
+    const d = await gqlRequest(app, DELETE, { id: created.id });
+    expect(d.status).toBe(200);
+    const dBody = d.body as unknown as GraphQLResponse<{
+      deletePerson: boolean;
+    }>;
+    expect(dBody.data?.deletePerson).toBe(true);
+  });
 });

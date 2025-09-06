@@ -9,7 +9,13 @@ export abstract class IPersonInputPort {
   ): Promise<AdminPersonCreateDto>;
   abstract delete(id: string): Promise<void>;
 
-  abstract find(id: string): Promise<PersonOutputDto | undefined>;
+  abstract find(
+    id: string,
+    include?: {
+      contacts?: boolean;
+      principal?: { include?: { account?: boolean } };
+    },
+  ): Promise<PersonOutputDto | undefined>;
 }
 
 export type AdminPersonCreateDto = {

@@ -51,9 +51,16 @@ export class PersonCommandRepository implements IPersonCommandRepository {
 export class PersonQueryRepository implements IPersonQueryRepository {
   constructor(private readonly prisma = PrismaClientSingleton.instance) {}
 
-  async find(id: Id): Promise<Person | undefined> {
+  async find(
+    id: Id,
+    include?: {
+      contacts?: boolean;
+      principal?: { include?: { account?: boolean } };
+    },
+  ): Promise<Person | undefined> {
     const person = await this.prisma.person.findUnique({
       where: { id: id.value },
+      include: include,
     });
     if (person) {
       return prismaToPerson(person);

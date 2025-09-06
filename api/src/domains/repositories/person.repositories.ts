@@ -7,6 +7,16 @@ export abstract class IPersonCommandRepository {
 }
 
 export abstract class IPersonQueryRepository {
-  abstract find(id: Id): Promise<Person | undefined>;
+  abstract find(
+    id: Id,
+    include?: {
+      contacts?: boolean;
+      principal?: {
+        include?: {
+          account?: boolean;
+        };
+      };
+    },
+  ): Promise<Person | undefined>;
   abstract list(): Promise<Person[]>;
 }

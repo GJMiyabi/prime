@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "codegen": "graphql-codegen --config codegen.ts && prettier -w 'src/__generated__/**/*.*'",
     "validate": "npx prisma validate --schema=src/frameworks/prisma/schema.prisma",
-    "generate": "npx prisma generate --schema=src/frameworks/prisma/schema.prisma"
+    "generate": "npx prisma generate --schema=src/frameworks/prisma/schema.prisma",
+    "studio": "npx prisma studio --schema=src/frameworks/prisma/schema.prisma"
   },
   "dependencies": {
     "@nestjs/apollo": "^13.1.0",
