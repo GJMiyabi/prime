@@ -1,4 +1,3 @@
-import { ContactType } from 'src/__generated__/types';
 import { ContactAddress } from 'src/domains/entities/contact-address';
 
 export abstract class IFacilityInputPort {
@@ -9,7 +8,7 @@ export type FacilityCreateDto = {
   name: string;
   IDNumber: string;
   value: string;
-  type: ContactType;
+  personId: string;
 };
 
 export type FacilityOutputDto = {

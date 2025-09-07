@@ -40,8 +40,8 @@ model Organization {
 
 model ContactAddress {
   id       String  @id @default(uuid())
-  personId String
-  person   Person  @relation(fields: [personId], references: [id])
+  personId       String?      
+  person         Person?      @relation(fields: [personId], references: [id])
   type     ContactType
   value    String
   organizationId String?

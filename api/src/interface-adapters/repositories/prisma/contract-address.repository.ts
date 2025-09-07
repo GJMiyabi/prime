@@ -22,10 +22,15 @@ function mapPrismaContactType(t: PrismaContactType): ContactType {
 }
 
 export function prismaToContactAddress(prisma: PrismaContactAddress) {
+  const fid = prisma.facilityId ? new Id(prisma.facilityId) : undefined;
+  const pid = prisma.personId ? new Id(prisma.personId) : undefined;
+  const oid = prisma.organizationId ? new Id(prisma.organizationId) : undefined;
   return new ContactAddress({
     id: new Id(prisma.id),
     type: mapPrismaContactType(prisma.type),
-    personId: new Id(prisma.personId),
+    personId: pid,
+    organizationId: oid,
+    facilityId: fid,
     value: prisma.value,
   });
 }
@@ -40,6 +45,8 @@ export class ContactAddressCommandRepository
       data: {
         id: data.getId(),
         personId: data.getPersonId(),
+        facilityId: data.getFacilityId(),
+        organizationId: data.getOrganizationId(),
         type: data.getType(),
         value: data.getValue(),
       },
