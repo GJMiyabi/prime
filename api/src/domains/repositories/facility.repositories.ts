@@ -2,7 +2,7 @@ import { Facility } from '../entities/facility';
 import { Id } from '../value-object/id';
 
 export abstract class IFacilityCommandRepository {
-  abstract create(facility: Facility): Promise<Facility>;
+  abstract create(f: Facility): Promise<Facility>;
   abstract delete(id: Id): Promise<void>;
 }
 
