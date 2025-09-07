@@ -87,6 +87,8 @@ export class PersonInteractor implements IPersonInputPort {
     include?: {
       contacts?: boolean;
       principal?: { include?: { account?: boolean } };
+      facility?: boolean;
+      organization?: boolean;
     },
   ): Promise<PersonOutputDto | undefined> {
     const person = await this.personQueryRepository.find(new Id(id), include);

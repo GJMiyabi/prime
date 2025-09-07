@@ -16,6 +16,8 @@ export abstract class IPersonQueryRepository {
           account?: boolean;
         };
       };
+      facility?: boolean;
+      organization?: boolean;
     },
   ): Promise<Person | undefined>;
   abstract list(): Promise<Person[]>;

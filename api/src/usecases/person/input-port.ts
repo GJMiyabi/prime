@@ -14,6 +14,8 @@ export abstract class IPersonInputPort {
     include?: {
       contacts?: boolean;
       principal?: { include?: { account?: boolean } };
+      facility?: boolean;
+      organization?: boolean;
     },
   ): Promise<PersonOutputDto | undefined>;
 }

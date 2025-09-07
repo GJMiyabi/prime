@@ -7,11 +7,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Person {                  // 利用者（メール不要）
+model Person {               
   id        String   @id @default(uuid())
   name      String
   contacts  ContactAddress[]
   principal Principal?
+  facilityId String?
+  facility   Facility? @relation(fields: [facilityId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  @@index([facilityId])
+  @@index([organizationId])
+}
+
+model Facility {
+  id      String  @id @default(uuid())
+  name    String
+  IDNumber String
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  persons Person[]
+  contactAddress ContactAddress[]
+  @@index([organizationId])
+}
+
+model Organization {
+  id      String  @id @default(uuid())
+  name    String
+  IDNumber String
+  persons Person[]
+  facilities Facility[]
+  contactAddress ContactAddress[]
 }
 
 model ContactAddress {
@@ -20,6 +46,12 @@ model ContactAddress {
   person   Person  @relation(fields: [personId], references: [id])
   type     ContactType
   value    String
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  facilityId String?
+  facility   Facility? @relation(fields: [facilityId], references: [id])
+  @@index([organizationId])
+  @@index([facilityId])
 }
 
 enum ContactType { 
@@ -40,7 +72,7 @@ model Principal {
 enum PrincipalKind { 
   ADMIN 
   TEACHER
-  STUDENT　
+  STUDENT
   STAKEHOLDER
 }
 
@@ -60,4 +92,3 @@ model Account {
   // 監査/同期補助（任意）
   lastLoginAt  DateTime?
 }
-
