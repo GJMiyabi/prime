@@ -7,14 +7,6 @@ import {
   IPersonQueryRepository,
 } from 'src/domains/repositories/person.repositories';
 
-function prismaToPerson(prisma: Prisma) {
-  return new Person({
-    id: new Id(prisma.id),
-    name: prisma.name,
-    contacts: [],
-  });
-}
-
 export class PersonCommandRepository implements IPersonCommandRepository {
   constructor(private readonly prisma = PrismaClientSingleton.instance) {}
 
@@ -27,6 +19,30 @@ export class PersonCommandRepository implements IPersonCommandRepository {
     });
 
     return prismaToPerson(newPerson);
+  }
+
+  async update(person: Person): Promise<Person> {
+    const id = person.id.value;
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const base = await tx.person.update({
+        where: { id },
+        data: {
+          name: person.getName(),
+          organizationId:
+            person.getOrganizationId() !== undefined
+              ? person.getOrganizationId()!
+              : undefined,
+          facilities: {
+            set: person.getFacilities().map((fid) => ({ id: fid })),
+          },
+        },
+      });
+
+      return base;
+    });
+
+    return prismaToPerson(updated);
   }
 
   async delete(id: Id): Promise<void> {
@@ -73,4 +89,14 @@ export class PersonQueryRepository implements IPersonQueryRepository {
     const persons = await this.prisma.person.findMany();
     return persons.map(prismaToPerson);
   }
+}
+
+function prismaToPerson(prisma: Prisma) {
+  const oid = prisma.organizationId ? prisma.organizationId : undefined;
+  return new Person({
+    id: new Id(prisma.id),
+    name: prisma.name,
+    contacts: [],
+    organizationId: oid,
+  });
 }

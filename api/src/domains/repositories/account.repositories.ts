@@ -3,6 +3,7 @@ import { Id } from '../value-object/id';
 
 export abstract class IAccountCommandRepository {
   abstract create(data: Account): Promise<Account>;
+  abstract update(data: Account): Promise<Account>;
   abstract delete(principalId: Id): Promise<void>;
 }
 

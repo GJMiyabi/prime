@@ -3,6 +3,7 @@ import { Person } from '../entities/person';
 
 export abstract class IPersonCommandRepository {
   abstract create(person: Person): Promise<Person>;
+  abstract update(person: Person): Promise<Person>;
   abstract delete(id: Id): Promise<void>;
 }
 

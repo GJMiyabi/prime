@@ -55,6 +55,27 @@ export class ContactAddressCommandRepository
     return prismaToContactAddress(newData);
   }
 
+  async update(c: ContactAddress): Promise<ContactAddress> {
+    const id = c.id.value;
+
+    const updated = await this.prisma.contactAddress.update({
+      where: { id },
+      data: {
+        type: c.getType(),
+        value: c.getValue(),
+        personId: c.getPersonId() !== undefined ? c.getPersonId()! : undefined,
+        facilityId:
+          c.getFacilityId() !== undefined ? c.getFacilityId()! : undefined,
+        organizationId:
+          c.getOrganizationId() !== undefined
+            ? c.getOrganizationId()!
+            : undefined,
+      },
+    });
+
+    return prismaToContactAddress(updated);
+  }
+
   async delete(personId: Id): Promise<void> {
     await this.prisma.contactAddress.deleteMany({
       where: { personId: personId.value },

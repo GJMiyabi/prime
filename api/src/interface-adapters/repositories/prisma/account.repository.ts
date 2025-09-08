@@ -36,6 +36,20 @@ export class AccountCommandRepository implements IAccountCommandRepository {
     return prismToAccount(newData);
   }
 
+  async update(data: Account): Promise<Account> {
+    const passwordHash = await argon2.hash(data.getPassword());
+    const updated = await this.prisma.account.update({
+      where: { id: data.getId() },
+      data: {
+        password: passwordHash,
+        username: data.getUsername(),
+        principalId: data.getPrincipalId(),
+        isActive: data.getIsActive(),
+      },
+    });
+    return prismToAccount(updated);
+  }
+
   async delete(principalId: Id): Promise<void> {
     await this.prisma.account.delete({
       where: { principalId: principalId.value },

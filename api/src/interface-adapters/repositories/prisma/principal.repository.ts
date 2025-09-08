@@ -45,6 +45,17 @@ export class PrincipalCommandRepository implements IPrincipalCommandRepository {
     return prismaToPrincipal(newData);
   }
 
+  async update(d: Principal): Promise<Principal> {
+    const updated = await this.prisma.principal.update({
+      where: { id: d.getId() },
+      data: {
+        kind: d.getKind(),
+        personId: d.getPersonId(),
+      },
+    });
+    return prismaToPrincipal(updated);
+  }
+
   async delete(personId: Id): Promise<void> {
     await this.prisma.principal.delete({ where: { personId: personId.value } });
   }

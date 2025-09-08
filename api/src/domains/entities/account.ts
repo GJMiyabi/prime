@@ -55,6 +55,10 @@ export class Account {
     return this.isActive;
   }
 
+  getIsActive(): boolean {
+    return this.isActive;
+  }
+
   getProvider(): string {
     return this.provider;
   }
