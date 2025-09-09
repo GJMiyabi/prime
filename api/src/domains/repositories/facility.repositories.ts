@@ -3,6 +3,7 @@ import { Id } from '../value-object/id';
 
 export abstract class IFacilityCommandRepository {
   abstract create(f: Facility): Promise<Facility>;
+  abstract update(f: Facility): Promise<Facility>;
   abstract delete(id: Id): Promise<void>;
 }
 

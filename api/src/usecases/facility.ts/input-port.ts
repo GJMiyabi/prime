@@ -2,6 +2,7 @@ import { ContactAddress } from 'src/domains/entities/contact-address';
 
 export abstract class IFacilityInputPort {
   abstract create(input: FacilityCreateDto): Promise<FacilityOutputDto>;
+  abstract update(input: FacilityUpdateDto): Promise<FacilityUpdateResponse>;
 }
 
 export type FacilityCreateDto = {
@@ -15,4 +16,19 @@ export type FacilityOutputDto = {
   name: string;
   IDNumber: string;
   contactAddress?: ContactAddress[];
+};
+
+export type FacilityUpdateDto = {
+  id: string;
+  name: string;
+  IDNumber: string;
+  organizationId?: string;
+  persons?: string[];
+  contactAddresses?: string[];
+};
+
+export type FacilityUpdateResponse = {
+  result: boolean;
+  message: string;
+  data: FacilityUpdateDto | undefined;
 };
