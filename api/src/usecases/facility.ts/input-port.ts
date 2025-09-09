@@ -1,4 +1,5 @@
 import { ContactAddress } from 'src/domains/entities/contact-address';
+import { ContactAddressSaveDto } from '../contact-address/input-port';
 
 export abstract class IFacilityInputPort {
   abstract create(input: FacilityCreateDto): Promise<FacilityOutputDto>;
@@ -24,11 +25,20 @@ export type FacilityUpdateDto = {
   IDNumber: string;
   organizationId?: string;
   persons?: string[];
+  contactAddresses?: ContactAddressSaveDto[];
+};
+
+export type FacilityUpdateOutputDto = {
+  id: string;
+  name: string;
+  IDNumber: string;
+  organizationId?: string;
+  persons?: string[];
   contactAddresses?: string[];
 };
 
 export type FacilityUpdateResponse = {
   result: boolean;
   message: string;
-  data: FacilityUpdateDto | undefined;
+  data: FacilityUpdateOutputDto | undefined;
 };

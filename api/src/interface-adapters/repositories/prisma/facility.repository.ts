@@ -29,6 +29,18 @@ export class FacilityCommandRepository implements IFacilityCommandRepository {
     return prismaToFacility(newData);
   }
 
+  async update(f: Facility): Promise<Facility> {
+    const updated = await this.prisma.facility.update({
+      where: { id: f.getId() },
+      data: {
+        IDNumber: f.getIDNumber(),
+        name: f.getName(),
+        organizationId: f.getOrganizationId(),
+      },
+    });
+    return prismaToFacility(updated);
+  }
+
   async delete(id: Id): Promise<void> {
     await this.prisma.facility.delete({
       where: { id: id.value },

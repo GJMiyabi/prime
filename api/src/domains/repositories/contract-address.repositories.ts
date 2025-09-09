@@ -11,4 +11,5 @@ export abstract class IContactAddressQueryRepository {
   abstract findByPersonId(
     personId: string,
   ): Promise<ContactAddress[] | undefined>;
+  abstract find(id: Id): Promise<ContactAddress | undefined>;
 }

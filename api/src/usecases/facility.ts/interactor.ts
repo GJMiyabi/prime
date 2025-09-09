@@ -94,12 +94,57 @@ export class FacilityInteractor implements IFacilityInputPort {
       persons = exist.getPersons();
     }
 
+    let contactAddresses: ContactAddress[] = exist.getContactAddresses();
+
+    if (input.contactAddresses && input.contactAddresses.length > 0) {
+      const updatedAddresses: ContactAddress[] = [];
+      const inputIdSet = new Set(
+        input.contactAddresses
+          .filter((ca) => !!ca.id)
+          .map((ca) => ca.id as string),
+      );
+      const existingForDeletion = exist.getContactAddresses();
+      for (const ex of existingForDeletion) {
+        const exId = ex.id?.value as string | undefined;
+        if (exId && !inputIdSet.has(exId)) {
+          await this.contactAddressCommandRepository.delete(new Id(exId));
+        }
+      }
+
+      for (const ca of input.contactAddresses) {
+        if (ca.id) {
+          const existingCA = await this.contactAddressQueryRepository.find(
+            new Id(ca.id),
+          );
+          if (Array.isArray(existingCA)) {
+            updatedAddresses.push(...existingCA);
+          } else if (existingCA) {
+            updatedAddresses.push(existingCA);
+          }
+        } else {
+          // 新規作成
+          const newCA = new ContactAddress({
+            id: new Id(),
+            value: ca.value,
+            type: ca.type,
+            facilityId: exist.getIdVO(),
+          });
+          const saved =
+            await this.contactAddressCommandRepository.create(newCA);
+          updatedAddresses.push(saved);
+        }
+      }
+
+      contactAddresses = updatedAddresses;
+    }
+
     const newFacility = new Facility({
       id: new Id(exist.id.value),
       name: name,
       idNumber: IDNumber,
       organizationId: organizationId,
       persons: persons,
+      contactAddresses,
     });
 
     const update = await this.facilityCommandRepository.update(newFacility);

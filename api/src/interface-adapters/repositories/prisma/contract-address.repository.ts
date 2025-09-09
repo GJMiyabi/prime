@@ -96,4 +96,11 @@ export class ContactAddressQueryRepository
 
     return rows.map(prismaToContactAddress);
   }
+
+  async find(id: Id): Promise<ContactAddress | undefined> {
+    const row = await this.prisma.contactAddress.findUnique({
+      where: { id: id.value },
+    });
+    return row ? prismaToContactAddress(row) : undefined;
+  }
 }
