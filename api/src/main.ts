@@ -15,6 +15,6 @@ async function bootstrap() {
   const message = `Start Server with port = ${port}, environment = ${environment}`;
   Logger.log(message, 'main');
   app.use(cookieParser());
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 4000);
 }
 void bootstrap();
