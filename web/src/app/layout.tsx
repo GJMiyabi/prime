@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./index.css";
+import { ApolloWrapper } from "./providers";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -12,8 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
-      <body>{children}</body>
-    </html>
+    <ApolloWrapper>
+      <html lang="ja">
+        <body>{children}</body>
+      </html>
+    </ApolloWrapper>
   );
 }
