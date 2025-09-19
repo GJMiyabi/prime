@@ -3,6 +3,7 @@ import {
   IPersonInputPort,
   AdminPersonCreateDto,
   PersonOutputDto,
+  SinglePersonAndContact,
 } from './input-port';
 import {
   IPersonCommandRepository,
@@ -26,6 +27,7 @@ import { Account } from 'src/domains/entities/account';
 import { ContactAddress } from 'src/domains/entities/contact-address';
 import { Principal } from 'src/domains/entities/principal';
 import { PrincipalKind } from 'src/domains/type/principal-kind';
+import { ContactType } from 'src/domains/type/contact';
 
 @Injectable()
 export class PersonInteractor implements IPersonInputPort {
@@ -79,6 +81,30 @@ export class PersonInteractor implements IPersonInputPort {
       name: newPerson.getName(),
       value: newAddress.getValue(),
       type: newAddress.getType(),
+    };
+  }
+
+  async createPrson(
+    input: SinglePersonAndContact,
+  ): Promise<SinglePersonAndContact> {
+    const person = new Person({
+      id: new Id(),
+      name: input.name,
+    });
+
+    const address = new ContactAddress({
+      id: new Id(),
+      type: ContactType.EMAIL,
+      personId: new Id(person.id.value),
+      value: input.value,
+    });
+    const newPerson = await this.personCommandRepository.create(person);
+    const newAddress =
+      await this.contactAddressCommandRepository.create(address);
+
+    return {
+      name: newPerson.getName(),
+      value: newAddress.getValue(),
     };
   }
 

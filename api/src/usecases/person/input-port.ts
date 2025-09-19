@@ -18,7 +18,16 @@ export abstract class IPersonInputPort {
       organization?: boolean;
     },
   ): Promise<PersonOutputDto | undefined>;
+
+  abstract createPrson(
+    input: SinglePersonAndContact,
+  ): Promise<SinglePersonAndContact>;
 }
+
+export type SinglePersonAndContact = {
+  name: string;
+  value: string;
+};
 
 export type AdminPersonCreateDto = {
   id?: string;

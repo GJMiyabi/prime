@@ -21,8 +21,21 @@ input LoginInput {
   password: String!
 }
 
+input SinglePersonAndContactInput {
+  name: String!
+  value: String!
+}
+
+type SinglePerson {
+  id: ID!
+  name: String!
+  value: String!
+}
+
 type Mutation {
   login(input: LoginInput!): AuthPayload
   deletePerson(id: ID!): Boolean!
   saveAdminPeron(input: AdminPersonCreateInput!): AdminPerson!
+  # Person
+  createSinglePerson(input: SinglePersonAndContactInput!): SinglePerson!
 }

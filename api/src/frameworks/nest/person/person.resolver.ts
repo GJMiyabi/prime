@@ -2,6 +2,7 @@ import { Mutation, Resolver, Args, Query } from '@nestjs/graphql';
 import {
   IPersonInputPort,
   AdminPersonCreateDto,
+  SinglePersonAndContact,
 } from 'src/usecases/person/input-port';
 
 @Resolver()
@@ -15,6 +16,16 @@ export class PersonMutationResolver {
     return {
       __type: 'AdminPeron',
       ...admin,
+    };
+  }
+
+  @Mutation('createSinglePerson')
+  async createSinglePerson(@Args('input') input: SinglePersonAndContact) {
+    const person = await this.personInputport.createPrson(input);
+
+    return {
+      __type: 'SinglePeron',
+      ...person,
     };
   }
 
