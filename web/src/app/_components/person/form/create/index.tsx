@@ -1,12 +1,14 @@
 "use client";
 import React, { useState } from "react";
-import { useCreateSinglePerson } from "@/app/_hooks/PersonFrom";
+import { useCreateSinglePerson } from "@/app/_hooks/person/form/create";
+import { useRouter } from "next/navigation";
 
-const PersonForm: React.FC = () => {
+const PersonCreateForm: React.FC = () => {
   const [name, setName] = useState("");
   const [value, setValue] = useState("");
   // Add type annotation for data
   const { createPerson, loading, error } = useCreateSinglePerson();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +19,7 @@ const PersonForm: React.FC = () => {
     }
     if (data?.createSinglePerson) {
       const created = data?.createSinglePerson;
-      console.log("Created:", created.id, created.name, created.value);
+      router.push(`/${created.id}`);
     }
   };
 
@@ -59,4 +61,4 @@ const PersonForm: React.FC = () => {
   );
 };
 
-export default PersonForm;
+export default PersonCreateForm;

@@ -1,5 +1,3 @@
-// src/types/graphql.ts などにまとめておくと便利
-
 export type SinglePerson = {
   id: string;
   name: string;
@@ -16,4 +14,12 @@ export type CreateSinglePersonVars = {
     name: string;
     value: string;
   };
+};
+
+export type GetPersonData = {
+  person: { id: string; name: string } | null;
+};
+
+export type GetPersonVars = {
+  id: string;
 };

@@ -4,7 +4,7 @@ import { useMutation } from "@apollo/client/react";
 import {
   CreateSinglePersonData,
   CreateSinglePersonVars,
-} from "@/app/_types/Person";
+} from "@/app/_types/person";
 
 const CREATE_SINGLE_PERSON = gql`
   mutation CreateSinglePerson($input: SinglePersonAndContactInput!) {
