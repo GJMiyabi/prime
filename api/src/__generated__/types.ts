@@ -123,7 +123,7 @@ export type QueryPersonArgs = {
 
 export type SinglePerson = {
   __typename?: 'SinglePerson';
-  id: Scalars['ID']['output'];
+  id?: Maybe<Scalars['ID']['output']>;
   name: Scalars['String']['output'];
   value: Scalars['String']['output'];
 };

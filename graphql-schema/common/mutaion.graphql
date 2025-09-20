@@ -27,7 +27,7 @@ input SinglePersonAndContactInput {
 }
 
 type SinglePerson {
-  id: ID!
+  id: ID
   name: String!
   value: String!
 }
