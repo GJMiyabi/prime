@@ -10,7 +10,15 @@ const PersonForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createPerson(name, value);
+    const { data, error } = await createPerson(name, value);
+    if (error) {
+      console.error(error);
+      return;
+    }
+    if (data?.createSinglePerson) {
+      const created = data?.createSinglePerson;
+      console.log("Created:", created.id, created.name, created.value);
+    }
   };
 
   return (

@@ -4,6 +4,7 @@ import {
   AdminPersonCreateDto,
   PersonOutputDto,
   SinglePersonAndContact,
+  SinglePersonAndContactOutput,
 } from './input-port';
 import {
   IPersonCommandRepository,
@@ -86,7 +87,7 @@ export class PersonInteractor implements IPersonInputPort {
 
   async createPrson(
     input: SinglePersonAndContact,
-  ): Promise<SinglePersonAndContact> {
+  ): Promise<SinglePersonAndContactOutput> {
     const person = new Person({
       id: new Id(),
       name: input.name,
@@ -103,6 +104,7 @@ export class PersonInteractor implements IPersonInputPort {
       await this.contactAddressCommandRepository.create(address);
 
     return {
+      id: newPerson.id.value,
       name: newPerson.getName(),
       value: newAddress.getValue(),
     };

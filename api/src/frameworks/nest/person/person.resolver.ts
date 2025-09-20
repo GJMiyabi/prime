@@ -22,7 +22,7 @@ export class PersonMutationResolver {
   @Mutation('createSinglePerson')
   async createSinglePerson(@Args('input') input: SinglePersonAndContact) {
     const person = await this.personInputport.createPrson(input);
-
+    console.log(person);
     return {
       __type: 'SinglePeron',
       ...person,

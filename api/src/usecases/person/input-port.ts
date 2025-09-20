@@ -21,10 +21,16 @@ export abstract class IPersonInputPort {
 
   abstract createPrson(
     input: SinglePersonAndContact,
-  ): Promise<SinglePersonAndContact>;
+  ): Promise<SinglePersonAndContactOutput>;
 }
 
 export type SinglePersonAndContact = {
+  name: string;
+  value: string;
+};
+
+export type SinglePersonAndContactOutput = {
+  id: string;
   name: string;
   value: string;
 };
