@@ -7,7 +7,7 @@ import {
   IOrganizationCommandRepository,
 } from 'src/domains/repositories/organization.repositories';
 
-function prismaToOrganization(p: Prisma) {
+export function prismaToOrganization(p: Prisma) {
   return new Organization({
     id: new Id(p.id),
     idNumber: p.IDNumber,

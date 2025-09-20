@@ -12,12 +12,8 @@ export abstract class IPersonQueryRepository {
     id: Id,
     include?: {
       contacts?: boolean;
-      principal?: {
-        include?: {
-          account?: boolean;
-        };
-      };
-      facility?: boolean;
+      principal?: { include?: { account?: boolean } };
+      facilities?: boolean;
       organization?: boolean;
     },
   ): Promise<Person | undefined>;

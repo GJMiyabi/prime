@@ -127,7 +127,7 @@ export type Person = {
 
 export type PersonIncludeInput = {
   contacts?: InputMaybe<Scalars['Boolean']['input']>;
-  facility?: InputMaybe<Scalars['Boolean']['input']>;
+  facilities?: InputMaybe<Scalars['Boolean']['input']>;
   organization?: InputMaybe<Scalars['Boolean']['input']>;
   principal?: InputMaybe<PrincipalIncludeInput>;
 };

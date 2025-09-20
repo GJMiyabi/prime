@@ -7,9 +7,11 @@ export default function PersonDetailPage() {
   const params = useParams<{ personId: string }>();
   const personId = params?.personId;
 
-  const { data, loading, error, refetch } = useGetPerson(personId);
+  const { data, loading, error, refetch } = useGetPerson(personId, {
+    contacts: true,
+  });
 
-  console.log("GraphQL errors:", data);
+  console.log("GraphQL errors:", error, data);
 
   return (
     <div>

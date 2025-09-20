@@ -1,7 +1,5 @@
-import { ContactAddress } from 'src/domains/entities/contact-address';
-import { Principal } from 'src/domains/entities/principal';
-import { Account } from 'src/domains/entities/account';
 import { ContactType } from 'src/domains/type/contact';
+import { PrincipalKind } from 'src/domains/type/principal-kind';
 
 export abstract class IPersonInputPort {
   abstract createAdmin(
@@ -42,10 +40,31 @@ export type AdminPersonCreateDto = {
   type: ContactType;
 };
 
+export type ContactAddressDTO = {
+  id: string;
+  type: ContactType;
+  value: string;
+};
+
+export type AccountDTO = {
+  id: string;
+  username: string;
+  email?: string | null;
+  isActive: boolean;
+};
+export type PrincipalDTO = {
+  id: string;
+  kind: PrincipalKind;
+  account?: AccountDTO | null;
+};
+export type FacilityDTO = { id: string; name: string };
+export type OrganizationDTO = { id: string; name: string };
+
 export type PersonOutputDto = {
   id: string;
   name: string;
-  principal?: Principal;
-  contactAddress?: ContactAddress[];
-  account?: Account;
+  contacts?: ContactAddressDTO[];
+  principal?: PrincipalDTO | null;
+  facilities?: FacilityDTO[] | null;
+  organization?: OrganizationDTO | null;
 };

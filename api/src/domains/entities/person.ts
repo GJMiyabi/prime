@@ -1,22 +1,25 @@
 import { Id } from '../value-object/id';
 import { ContactAddress } from './contact-address';
+import { Facility } from './facility';
+import { Principal } from './principal';
+import { Organization } from './organization';
 
 type PersonProps = {
   id: Id;
   name: string;
   contacts?: ContactAddress[];
-  principal?: string;
-  facilities?: string[];
-  organizationId?: string;
+  principal?: Principal;
+  facilities?: Facility[];
+  organization?: Organization;
 };
 
 export class Person {
   readonly id: Id;
   readonly name: string;
   readonly contacts: ContactAddress[];
-  readonly principal?: string;
-  readonly facilities: string[];
-  readonly organizationId?: string;
+  readonly principal?: Principal;
+  readonly facilities?: Facility[];
+  readonly organization?: Organization;
 
   constructor(props: PersonProps) {
     this.id = props.id;
@@ -24,22 +27,30 @@ export class Person {
     this.contacts = props.contacts ?? [];
     this.principal = props.principal;
     this.facilities = props.facilities ?? [];
-    this.organizationId = props.organizationId;
+    this.organization = props.organization;
+  }
+
+  getId(): Id {
+    return this.id;
   }
 
   getName(): string {
     return this.name;
   }
 
-  getPrincipal(): string | undefined {
+  getContacts(): ContactAddress[] {
+    return this.contacts;
+  }
+
+  getPrincipal(): Principal | undefined {
     return this.principal;
   }
 
-  getFacilities(): string[] {
+  getFacilities(): Facility[] | undefined {
     return this.facilities;
   }
 
-  getOrganizationId(): string | undefined {
-    return this.organizationId;
+  getOrganization(): Organization | undefined {
+    return this.organization;
   }
 }

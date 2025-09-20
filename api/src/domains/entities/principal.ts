@@ -1,24 +1,25 @@
 import { Id } from '../value-object/id';
 import { PrincipalKind } from '../type/principal-kind';
+import { Account } from './account';
 
 export type PrincipalProps = {
   id?: Id;
   personId: Id;
   kind: PrincipalKind;
-  accountId?: Id;
+  account?: Account;
 };
 
 export class Principal {
   readonly id: Id;
   readonly personId: Id;
   readonly kind: PrincipalKind;
-  readonly accountId?: Id;
+  readonly account?: Account;
 
   constructor(props: PrincipalProps) {
     this.id = props.id ?? new Id();
     this.personId = props.personId;
     this.kind = props.kind;
-    this.accountId = props.accountId;
+    this.account = props.account;
   }
 
   getId(): string {
@@ -33,7 +34,7 @@ export class Principal {
     return this.kind;
   }
 
-  getAccountId(): string | undefined {
-    return this.accountId?.value;
+  getAccount(): Account | undefined {
+    return this.account;
   }
 }

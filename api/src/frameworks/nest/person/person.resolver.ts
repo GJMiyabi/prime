@@ -1,9 +1,54 @@
-import { Mutation, Resolver, Args, Query } from '@nestjs/graphql';
+import { Mutation, Resolver, Args, Query, Info } from '@nestjs/graphql';
 import {
   IPersonInputPort,
   AdminPersonCreateDto,
   SinglePersonAndContact,
 } from 'src/usecases/person/input-port';
+import { GraphQLResolveInfo } from 'graphql';
+
+import graphqlFields from 'graphql-fields';
+
+// Narrow util types
+type GraphQLFieldsTree = { [key: string]: GraphQLFieldsTree };
+
+function getSelectionTree(info?: GraphQLResolveInfo): GraphQLFieldsTree {
+  if (!info) return {};
+  // Handle both CJS default export and ESM named default in a type-safe way
+  const modUnknown: unknown = graphqlFields as unknown;
+
+  let callable: ((i: GraphQLResolveInfo) => unknown) | null = null;
+  if (typeof modUnknown === 'function') {
+    callable = modUnknown as (i: GraphQLResolveInfo) => unknown;
+  } else if (
+    modUnknown &&
+    typeof (modUnknown as { default?: unknown }).default === 'function'
+  ) {
+    callable = (modUnknown as { default: (i: GraphQLResolveInfo) => unknown })
+      .default;
+  }
+
+  if (!callable) return {};
+  try {
+    const out = callable(info);
+    return typeof out === 'object' && out !== null
+      ? (out as GraphQLFieldsTree)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function hasPath(obj: unknown, path: string): boolean {
+  if (!obj || typeof obj !== 'object') return false;
+  let current: unknown = obj;
+  for (const key of path.split('.')) {
+    if (!current || typeof current !== 'object') return false;
+    const record = current as Record<string, unknown>;
+    if (!(key in record)) return false;
+    current = record[key];
+  }
+  return true;
+}
 
 @Resolver()
 export class PersonMutationResolver {
@@ -50,15 +95,28 @@ export class PersonQueryResolver {
       facilities?: boolean;
       organization?: boolean;
     },
+    @Info() info?: GraphQLResolveInfo,
   ) {
-    const person = await this.personInputPort.find(id, {
-      contacts: include?.contacts,
-      principal: include?.principal
-        ? { include: { account: !!include.principal.account } }
-        : undefined,
-      facilities: include?.facilities,
-      organization: include?.organization,
-    });
+    const selectionTree: unknown = getSelectionTree(info);
+    const has = (path: string) => hasPath(selectionTree, path);
+
+    const effectiveInclude = {
+      contacts: include?.contacts ?? has('contacts'),
+      principal:
+        include?.principal || has('principal')
+          ? {
+              include: {
+                account:
+                  include?.principal?.account ?? has('principal.account'),
+              },
+            }
+          : undefined,
+      facilities: include?.facilities ?? has('facilities'),
+      organization: include?.organization ?? has('organization'),
+    } as const;
+
+    const person = await this.personInputPort.find(id, effectiveInclude);
+
     return {
       __type: 'Person',
       ...person,

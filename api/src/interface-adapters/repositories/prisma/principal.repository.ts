@@ -23,7 +23,7 @@ function mapPrismaKind(k: Kind): PrincipalKind {
   }
 }
 
-function prismaToPrincipal(p: Prisma) {
+export function prismaToPrincipal(p: Prisma) {
   return new Principal({
     id: new Id(p.id),
     kind: mapPrismaKind(p.kind),

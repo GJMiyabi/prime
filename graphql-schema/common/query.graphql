@@ -56,7 +56,7 @@ input PrincipalIncludeInput {
 input PersonIncludeInput {
   contacts: Boolean
   principal: PrincipalIncludeInput
-  facility: Boolean
+  facilities: Boolean
   organization: Boolean
 }
 

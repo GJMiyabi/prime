@@ -5,23 +5,18 @@ import {
   PersonOutputDto,
   SinglePersonAndContact,
   SinglePersonAndContactOutput,
+  ContactAddressDTO,
+  PrincipalDTO,
+  FacilityDTO,
+  OrganizationDTO,
 } from './input-port';
 import {
   IPersonCommandRepository,
   IPersonQueryRepository,
 } from 'src/domains/repositories/person.repositories';
-import {
-  IPrincipalQueryRepository,
-  IPrincipalCommandRepository,
-} from 'src/domains/repositories/principal.repositories';
-import {
-  IAccountQueryRepository,
-  IAccountCommandRepository,
-} from 'src/domains/repositories/account.repositories';
-import {
-  IContactAddressQueryRepository,
-  IContactAddressCommandRepository,
-} from 'src/domains/repositories/contract-address.repositories';
+import { IPrincipalCommandRepository } from 'src/domains/repositories/principal.repositories';
+import { IAccountCommandRepository } from 'src/domains/repositories/account.repositories';
+import { IContactAddressCommandRepository } from 'src/domains/repositories/contract-address.repositories';
 
 import { Id } from 'src/domains/value-object/id';
 import { Person } from 'src/domains/entities/person';
@@ -36,11 +31,8 @@ export class PersonInteractor implements IPersonInputPort {
   constructor(
     private readonly personCommandRepository: IPersonCommandRepository,
     private readonly personQueryRepository: IPersonQueryRepository,
-    private readonly principalQueryRepository: IPrincipalQueryRepository,
     private readonly principalCommandRepository: IPrincipalCommandRepository,
     private readonly accountCommandRepository: IAccountCommandRepository,
-    private readonly accountQueryRepository: IAccountQueryRepository,
-    private readonly contactAddressQueryRepository: IContactAddressQueryRepository,
     private readonly contactAddressCommandRepository: IContactAddressCommandRepository,
   ) {}
 
@@ -116,39 +108,75 @@ export class PersonInteractor implements IPersonInputPort {
     include?: {
       contacts?: boolean;
       principal?: { include?: { account?: boolean } };
-      facility?: boolean;
+      facilities?: boolean;
       organization?: boolean;
     },
   ): Promise<PersonOutputDto | undefined> {
     const person = await this.personQueryRepository.find(new Id(id), include);
     if (!person) return undefined;
 
-    let principal: Principal | undefined;
-    let account: Account | undefined;
-    let address: ContactAddress[] | undefined;
+    // contacts
+    const contactsDto: ContactAddressDTO[] | null | undefined =
+      include?.contacts
+        ? person.getContacts().map((c) => ({
+            id: c.getId(),
+            type: c.getType(),
+            value: c.getValue(),
+          }))
+        : null; // include未指定なら null で返す（スキーマに合わせて [] にしたいならここを [] に）
 
+    // principal (+ optional account)
+    let principalDto: PrincipalDTO | null | undefined = null;
     if (include?.principal) {
-      principal = await this.principalQueryRepository.findByPersonId(id);
-      if (principal && include.principal.include?.account) {
-        account = await this.accountQueryRepository.findByPrincipalId(
-          principal.id.value,
-        );
+      const p = person.getPrincipal();
+      if (p) {
+        principalDto = {
+          id: p.getId(),
+          kind: p.getKind(),
+          ...(include.principal.include?.account && p.getAccount()
+            ? {
+                account: {
+                  id: p.getAccount()!.getId(),
+                  username: p.getAccount()!.getUsername(),
+                  email: p.getAccount()!.getEmail(),
+                  isActive: p.getAccount()!.isEnabled(),
+                },
+              }
+            : { account: null }),
+        };
+      } else {
+        principalDto = null;
       }
     }
 
-    if (include?.contacts) {
-      address = await this.contactAddressQueryRepository.findByPersonId(id);
-    }
+    // facilities
+    const facilitiesDto: FacilityDTO[] | null | undefined = include?.facilities
+      ? (person.getFacilities()?.map((f) => ({
+          id: f.getId(),
+          name: f.getName(),
+        })) ?? [])
+      : null;
 
-    const result = {
+    // organization
+    const organizationDto: OrganizationDTO | null | undefined =
+      include?.organization
+        ? (() => {
+            const org = person.getOrganization();
+            return org ? { id: org.getId(), name: org.getName() } : null;
+          })()
+        : null;
+
+    // 最終 DTO（GraphQLのperson型に合わせたキー名）
+    const dto: PersonOutputDto = {
       id: person.id.value,
       name: person.getName(),
-      ...(include?.principal ? { principal } : {}),
-      ...(include?.principal?.include?.account ? { account } : {}),
-      ...(include?.contacts ? { contactAddress: address } : {}),
-    } as PersonOutputDto;
+      ...(include?.contacts ? { contacts: contactsDto ?? [] } : {}), // 常に配列で返したいなら `?? []`
+      ...(include?.principal ? { principal: principalDto } : {}),
+      ...(include?.facilities ? { facilities: facilitiesDto ?? [] } : {}),
+      ...(include?.organization ? { organization: organizationDto } : {}),
+    };
 
-    return result;
+    return dto;
   }
 
   async delete(id: string): Promise<void> {

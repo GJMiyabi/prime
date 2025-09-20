@@ -7,7 +7,7 @@ import {
   IFacilityCommandRepository,
 } from 'src/domains/repositories/facility.repositories';
 
-function prismaToFacility(p: Prisma) {
+export function prismaToFacility(p: Prisma) {
   return new Facility({
     id: new Id(p.id),
     idNumber: p.IDNumber,
