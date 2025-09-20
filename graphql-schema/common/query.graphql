@@ -5,26 +5,62 @@ enum PrincipalKind {
   STAKEHOLDER
 }
 
-type Principal {
-  id: ID!
-  kind: PrincipalKind
-}
-
+# アカウント
 type Account {
   id: ID!
-  username: String
-  provider: String
+  principalId: ID!
+  username: String!
+  isActive: Boolean!
+  provider: String!
   providerSub: String
+  email: String
+  lastLoginAt: DateTime
+}
+
+type Principal {
+  id: ID!
+  personId: ID!
+  kind: PrincipalKind!
+  accountId: ID # 1:1 を示す外部キーがあるなら
+  account: Account # リレーションを解決したい場合はフィールドを用意
+}
+
+type ContactAddress {
+  id: ID!
+  type: ContactType!
+  value: String!
 }
 
 type Person {
   id: ID!
   name: String!
+  contacts: [ContactAddress!]
   principal: Principal
-  account: Account
+  facilities: [Facility!]
+  organization: Organization
 }
 
-# Single person fetch
+type Facility {
+  id: ID!
+  name: String!
+}
+type Organization {
+  id: ID!
+  name: String!
+}
+# inputs
+input PrincipalIncludeInput {
+  account: Boolean
+}
+
+input PersonIncludeInput {
+  contacts: Boolean
+  principal: PrincipalIncludeInput
+  facility: Boolean
+  organization: Boolean
+}
+
+# Query
 type Query {
-  person(id: ID!): Person
+  person(id: ID!, include: PersonIncludeInput): Person
 }

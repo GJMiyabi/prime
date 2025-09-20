@@ -22,6 +22,7 @@ import {
   IContactAddressQueryRepository,
   IContactAddressCommandRepository,
 } from 'src/domains/repositories/contract-address.repositories';
+
 import { Id } from 'src/domains/value-object/id';
 import { Person } from 'src/domains/entities/person';
 import { Account } from 'src/domains/entities/account';

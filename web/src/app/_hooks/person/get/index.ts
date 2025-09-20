@@ -3,33 +3,40 @@ import { useQuery } from "@apollo/client/react";
 import { GetPersonData, GetPersonVars } from "@/app/_types/person";
 
 export const GET_PERSON = gql`
-  query GetPerson($id: ID!) {
-    person(id: $id) {
+  query GetPerson($id: ID!, $include: PersonIncludeInput) {
+    person(id: $id, include: $include) {
       id
       name
+      contacts {
+        id
+        type
+        value
+      }
+      principal {
+        id
+        kind
+        account {
+          id
+          username
+          email
+          isActive
+        }
+      }
+      facilities {
+        id
+        name
+      }
+      organization {
+        id
+        name
+      }
     }
   }
 `;
 
-export function useGetPerson(id: string | null | undefined) {
-  const skip = !id;
-  const variables: GetPersonVars = skip
-    ? ({ id: "" } as GetPersonVars)
-    : { id };
-
-  const { data, loading, error, refetch } = useQuery<
-    GetPersonData,
-    GetPersonVars
-  >(GET_PERSON, {
-    variables,
-    skip,
-    fetchPolicy: "cache-first",
+export function useGetPerson(id: string, include?: GetPersonVars["include"]) {
+  return useQuery<GetPersonData, GetPersonVars>(GET_PERSON, {
+    variables: { id, include },
+    skip: !id,
   });
-
-  return {
-    person: data?.person ?? null,
-    loading,
-    error,
-    refetch,
-  };
 }

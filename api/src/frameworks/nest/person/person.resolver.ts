@@ -41,8 +41,24 @@ export class PersonQueryResolver {
   constructor(private readonly personInputPort: IPersonInputPort) {}
 
   @Query(() => Object, { name: 'person' })
-  async findPerson(@Args('id') id: string) {
-    const person = await this.personInputPort.find(id);
+  async findPerson(
+    @Args('id') id: string,
+    @Args('include')
+    include?: {
+      contacts?: boolean;
+      principal?: { account?: boolean };
+      facilities?: boolean;
+      organization?: boolean;
+    },
+  ) {
+    const person = await this.personInputPort.find(id, {
+      contacts: include?.contacts,
+      principal: include?.principal
+        ? { include: { account: !!include.principal.account } }
+        : undefined,
+      facilities: include?.facilities,
+      organization: include?.organization,
+    });
     return {
       __type: 'Person',
       ...person,
