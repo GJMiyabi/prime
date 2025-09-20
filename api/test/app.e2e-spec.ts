@@ -97,7 +97,7 @@ describe('Person create → get → delete (e2e)', () => {
       saveAdminPeron?: CreatedPerson;
     }>;
     const created = createBody.data?.saveAdminPeron;
-    console.log('created', created);
+
     expect(created).toBeDefined();
     expect(created?.name).toBe('Alice E2E');
     expect(created?.type).toBe('EMAIL');
@@ -128,7 +128,7 @@ describe('Person create → get → delete (e2e)', () => {
       person: Person | null;
     }>;
     const one = queryBody.data?.person;
-    console.log('one', one);
+
     expect(one).toBeDefined();
     expect(one?.id).toBe(personId);
 

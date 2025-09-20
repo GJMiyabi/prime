@@ -115,7 +115,6 @@ export class PersonInteractor implements IPersonInputPort {
     const person = await this.personQueryRepository.find(new Id(id), include);
     if (!person) return undefined;
 
-    // contacts
     const contactsDto: ContactAddressDTO[] | null | undefined =
       include?.contacts
         ? person.getContacts().map((c) => ({
@@ -123,9 +122,8 @@ export class PersonInteractor implements IPersonInputPort {
             type: c.getType(),
             value: c.getValue(),
           }))
-        : null; // include未指定なら null で返す（スキーマに合わせて [] にしたいならここを [] に）
+        : null;
 
-    // principal (+ optional account)
     let principalDto: PrincipalDTO | null | undefined = null;
     if (include?.principal) {
       const p = person.getPrincipal();
