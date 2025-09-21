@@ -1,5 +1,5 @@
-import { Header } from "./_components/common/header";
-import PersonCreateForm from "./person/_components/person/form/create";
+import { Header } from "@/app/_components/common";
+import PersonCreateForm from "@/app/person/_components/person/form/create";
 
 export default function Home() {
   return (

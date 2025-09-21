@@ -1,8 +1,11 @@
 "use client";
-import { Header } from "../_components/common/header";
+import { Header } from "../../_components/common/header";
 import { useParams } from "next/navigation";
-import { useGetPerson } from "../_hooks/person/get";
-import { CollapsibleCardContainer, CardContent } from "../_components/common";
+import { useGetPerson } from "../_hook/person/get";
+import {
+  CollapsibleCardContainer,
+  CardContent,
+} from "../../_components/common";
 
 export default function PersonDetailPage() {
   const params = useParams<{ personId: string }>();
