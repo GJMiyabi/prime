@@ -36,7 +36,22 @@ export default function PersonDetailPage() {
         </div>
 
         <div className="pt-[15px]">
-          <CollapsibleCardContainer title="所属先">
+          <CollapsibleCardContainer title="アカウント設定">
+            {data?.person?.principal ? (
+              <div className="py-[5px]">
+                <CardContent
+                  title="設定施設"
+                  value={data?.person?.principal.account?.username}
+                />
+              </div>
+            ) : (
+              <p className="pl-[15px] py-[5px]">アカウントの設定はありません</p>
+            )}
+          </CollapsibleCardContainer>
+        </div>
+
+        <div className="pt-[15px]">
+          <CollapsibleCardContainer title="所属先施設">
             {data?.person?.facilities?.length ? (
               data.person.facilities.map((facility) => (
                 <div className="py-[5px]" key={facility.id}>
@@ -44,7 +59,22 @@ export default function PersonDetailPage() {
                 </div>
               ))
             ) : (
-              <p className="pl-[15px] py-[5px]">所属の設定ありません</p>
+              <p className="pl-[15px] py-[5px]">所属施設の設定ありません</p>
+            )}
+          </CollapsibleCardContainer>
+        </div>
+
+        <div className="pt-[15px]">
+          <CollapsibleCardContainer title="所属元組織">
+            {data?.person?.organization ? (
+              <div className="py-[5px]">
+                <CardContent
+                  title="設定施設"
+                  value={data?.person?.organization.name}
+                />
+              </div>
+            ) : (
+              <p className="pl-[15px] py-[5px]">所属組織の設定ありません</p>
             )}
           </CollapsibleCardContainer>
         </div>
