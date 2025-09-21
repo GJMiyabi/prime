@@ -3,7 +3,12 @@ import React, { useState } from "react";
 import { useCreateSinglePerson } from "@/app/person/_hook/person/form/create";
 import { useRouter } from "next/navigation";
 
-const PersonCreateForm: React.FC = () => {
+type Props = {
+  facilityId?: string | undefined;
+  organizationId?: string | undefined;
+};
+
+const PersonCreateForm: React.FC<Props> = ({ facilityId, organizationId }) => {
   const [name, setName] = useState("");
   const [value, setValue] = useState("");
   // Add type annotation for data
