@@ -3,10 +3,12 @@ import * as React from "react";
 type Props = {
   title: string;
   children?: React.ReactNode;
-  value?: string;
 };
 
-export const CollapsibleCard: React.FC<Props> = ({ title, children }) => {
+export const CollapsibleCardContainer: React.FC<Props> = ({
+  title,
+  children,
+}) => {
   const [open, setOpen] = React.useState(true);
 
   const handleToggle = () => setOpen((prev) => !prev);
@@ -24,4 +26,4 @@ export const CollapsibleCard: React.FC<Props> = ({ title, children }) => {
   );
 };
 
-export default CollapsibleCard;
+export default CollapsibleCardContainer;

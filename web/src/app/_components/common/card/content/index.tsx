@@ -5,9 +5,9 @@ type Props = {
   value: string | undefined;
 };
 
-export const ProfileContent: React.FC<Props> = ({ value, title }) => {
+export const CardContent: React.FC<Props> = ({ value, title }) => {
   return (
-    <div className="flex">
+    <div className="flex pl-[15px]">
       <p className="pr-[15px]">{title}:</p>
       <div className="cursor-pointer font-semibold">{value}</div>
     </div>
