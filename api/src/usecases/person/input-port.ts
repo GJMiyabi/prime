@@ -17,7 +17,7 @@ export abstract class IPersonInputPort {
     },
   ): Promise<PersonOutputDto | undefined>;
 
-  abstract createPrson(
+  abstract createPerson(
     input: SinglePersonAndContact,
   ): Promise<SinglePersonAndContactOutput>;
 }

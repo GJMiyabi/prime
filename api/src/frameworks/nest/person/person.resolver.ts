@@ -54,19 +54,19 @@ function hasPath(obj: unknown, path: string): boolean {
 export class PersonMutationResolver {
   constructor(private readonly personInputport: IPersonInputPort) {}
 
-  @Mutation('saveAdminPeron')
+  @Mutation('saveAdminPerson')
   async saveAdminUser(@Args('input') input: AdminPersonCreateDto) {
     const admin = await this.personInputport.createAdmin(input);
 
     return {
-      __type: 'AdminPeron',
+      __type: 'AdminPerson',
       ...admin,
     };
   }
 
   @Mutation('createSinglePerson')
   async createSinglePerson(@Args('input') input: SinglePersonAndContact) {
-    const person = await this.personInputport.createPrson(input);
+    const person = await this.personInputport.createPerson(input);
 
     return {
       __type: 'SinglePeron',

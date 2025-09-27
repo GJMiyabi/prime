@@ -78,7 +78,7 @@ export class PersonInteractor implements IPersonInputPort {
     };
   }
 
-  async createPrson(
+  async createPerson(
     input: SinglePersonAndContact,
   ): Promise<SinglePersonAndContactOutput> {
     const person = new Person({
