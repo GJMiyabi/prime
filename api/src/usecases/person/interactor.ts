@@ -2,13 +2,9 @@ import { Injectable } from '@nestjs/common';
 import {
   IPersonInputPort,
   AdminPersonCreateDto,
+  PersonCreateDto,
   PersonOutputDto,
-  SinglePersonAndContact,
-  SinglePersonAndContactOutput,
-  ContactAddressDTO,
-  PrincipalDTO,
-  FacilityDTO,
-  OrganizationDTO,
+  PersonIncludeOptions,
 } from './input-port';
 import {
   IPersonCommandRepository,
@@ -36,102 +32,151 @@ export class PersonInteractor implements IPersonInputPort {
     private readonly contactAddressCommandRepository: IContactAddressCommandRepository,
   ) {}
 
-  async createAdmin(
-    input: AdminPersonCreateDto,
-  ): Promise<AdminPersonCreateDto> {
-    const person = new Person({
-      id: new Id(),
-      name: input.name,
-    });
+  async createAdmin(input: AdminPersonCreateDto): Promise<PersonOutputDto> {
+    try {
+      const person = new Person({
+        id: new Id(),
+        name: input.name,
+      });
 
-    const address = new ContactAddress({
-      id: new Id(),
-      type: input.type,
-      personId: new Id(person.id.value),
-      value: input.value,
-    });
+      const address = new ContactAddress({
+        id: new Id(),
+        type: input.contactType,
+        personId: new Id(person.id.value),
+        value: input.contactValue,
+      });
 
-    const principal = new Principal({
-      id: new Id(),
-      personId: new Id(person.id.value),
-      kind: PrincipalKind.ADMIN,
-    });
+      const principal = new Principal({
+        id: new Id(),
+        personId: new Id(person.id.value),
+        kind: PrincipalKind.ADMIN,
+      });
 
-    const account = new Account({
-      id: new Id(),
-      password: '',
-      username: address.getValue(),
-      principalId: new Id(principal.getId()),
-    });
+      // TODO: Implement proper password generation/hashing
+      const account = new Account({
+        id: new Id(),
+        password: this.generateTemporaryPassword(),
+        username: address.getValue(),
+        principalId: new Id(principal.getId()),
+      });
 
-    const newPerson = await this.personCommandRepository.create(person);
-    const newAddress =
-      await this.contactAddressCommandRepository.create(address);
-    await this.principalCommandRepository.create(principal);
-    await this.accountCommandRepository.create(account);
+      // Transaction should be handled here
+      const newPerson = await this.personCommandRepository.create(person);
+      const newAddress =
+        await this.contactAddressCommandRepository.create(address);
+      await this.principalCommandRepository.create(principal);
+      await this.accountCommandRepository.create(account);
 
-    return {
-      id: newPerson.id.value,
-      name: newPerson.getName(),
-      value: newAddress.getValue(),
-      type: newAddress.getType(),
-    };
+      return this.mapPersonToDto(newPerson, {
+        contacts: [newAddress],
+        principal: principal,
+        account: account,
+      });
+    } catch (error) {
+      throw new Error(
+        `Failed to create admin: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
-  async createPerson(
-    input: SinglePersonAndContact,
-  ): Promise<SinglePersonAndContactOutput> {
-    const person = new Person({
-      id: new Id(),
-      name: input.name,
-    });
+  async createPerson(input: PersonCreateDto): Promise<PersonOutputDto> {
+    try {
+      const person = new Person({
+        id: new Id(),
+        name: input.name,
+      });
 
-    const address = new ContactAddress({
-      id: new Id(),
-      type: ContactType.EMAIL,
-      personId: new Id(person.id.value),
-      value: input.value,
-    });
-    const newPerson = await this.personCommandRepository.create(person);
-    const newAddress =
-      await this.contactAddressCommandRepository.create(address);
+      const address = new ContactAddress({
+        id: new Id(),
+        type: input.contactType || ContactType.EMAIL,
+        personId: new Id(person.id.value),
+        value: input.contactValue,
+      });
 
-    return {
-      id: newPerson.id.value,
-      name: newPerson.getName(),
-      value: newAddress.getValue(),
-    };
+      const newPerson = await this.personCommandRepository.create(person);
+      const newAddress =
+        await this.contactAddressCommandRepository.create(address);
+
+      return this.mapPersonToDto(newPerson, {
+        contacts: [newAddress],
+      });
+    } catch (error) {
+      throw new Error(
+        `Failed to create person: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   async find(
     id: string,
-    include?: {
-      contacts?: boolean;
-      principal?: { include?: { account?: boolean } };
-      facilities?: boolean;
-      organization?: boolean;
-    },
+    include?: PersonIncludeOptions,
   ): Promise<PersonOutputDto | undefined> {
-    const person = await this.personQueryRepository.find(new Id(id), include);
-    if (!person) return undefined;
+    try {
+      const person = await this.personQueryRepository.find(new Id(id), include);
+      if (!person) return undefined;
 
-    const contactsDto: ContactAddressDTO[] | null | undefined =
-      include?.contacts
-        ? person.getContacts().map((c) => ({
-            id: c.getId(),
-            type: c.getType(),
-            value: c.getValue(),
-          }))
-        : null;
+      return this.mapPersonToDto(person, {
+        includeContacts: include?.contacts,
+        includePrincipal: include?.principal,
+        includeFacilities: include?.facilities,
+        includeOrganization: include?.organization,
+      });
+    } catch (error) {
+      throw new Error(
+        `Failed to find person: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
 
-    let principalDto: PrincipalDTO | null | undefined = null;
-    if (include?.principal) {
-      const p = person.getPrincipal();
+  async delete(id: string): Promise<void> {
+    try {
+      await this.personCommandRepository.delete(new Id(id));
+    } catch (error) {
+      throw new Error(
+        `Failed to delete person: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  // Private helper methods
+  private generateTemporaryPassword(): string {
+    // TODO: Implement secure password generation
+    return 'temp_' + Math.random().toString(36).substring(2, 15);
+  }
+
+  private mapPersonToDto(
+    person: Person,
+    options: {
+      contacts?: ContactAddress[];
+      principal?: Principal;
+      account?: Account;
+      includeContacts?: boolean;
+      includePrincipal?: { include?: { account?: boolean } };
+      includeFacilities?: boolean;
+      includeOrganization?: boolean;
+    } = {},
+  ): PersonOutputDto {
+    const dto: PersonOutputDto = {
+      id: person.id.value,
+      name: person.getName(),
+    };
+
+    if (options.contacts || options.includeContacts) {
+      const contacts = options.contacts || person.getContacts();
+      dto.contacts = contacts.map((c) => ({
+        id: c.getId(),
+        type: c.getType(),
+        value: c.getValue(),
+      }));
+    }
+
+    if (options.principal || options.includePrincipal) {
+      const p = options.principal || person.getPrincipal();
       if (p) {
-        principalDto = {
+        dto.principal = {
           id: p.getId(),
           kind: p.getKind(),
-          ...(include.principal.include?.account && p.getAccount()
+          ...(options.includePrincipal?.include?.account && p.getAccount()
             ? {
                 account: {
                   id: p.getAccount()!.getId(),
@@ -143,41 +188,24 @@ export class PersonInteractor implements IPersonInputPort {
             : { account: null }),
         };
       } else {
-        principalDto = null;
+        dto.principal = null;
       }
     }
 
-    // facilities
-    const facilitiesDto: FacilityDTO[] | null | undefined = include?.facilities
-      ? (person.getFacilities()?.map((f) => ({
+    if (options.includeFacilities) {
+      const facilities = person.getFacilities();
+      dto.facilities =
+        facilities?.map((f) => ({
           id: f.getId(),
           name: f.getName(),
-        })) ?? [])
-      : null;
+        })) ?? [];
+    }
 
-    // organization
-    const organizationDto: OrganizationDTO | null | undefined =
-      include?.organization
-        ? (() => {
-            const org = person.getOrganization();
-            return org ? { id: org.getId(), name: org.getName() } : null;
-          })()
-        : null;
-
-    // 最終 DTO（GraphQLのperson型に合わせたキー名）
-    const dto: PersonOutputDto = {
-      id: person.id.value,
-      name: person.getName(),
-      ...(include?.contacts ? { contacts: contactsDto ?? [] } : {}), // 常に配列で返したいなら `?? []`
-      ...(include?.principal ? { principal: principalDto } : {}),
-      ...(include?.facilities ? { facilities: facilitiesDto ?? [] } : {}),
-      ...(include?.organization ? { organization: organizationDto } : {}),
-    };
+    if (options.includeOrganization) {
+      const org = person.getOrganization();
+      dto.organization = org ? { id: org.getId(), name: org.getName() } : null;
+    }
 
     return dto;
-  }
-
-  async delete(id: string): Promise<void> {
-    await this.personCommandRepository.delete(new Id(id));
   }
 }

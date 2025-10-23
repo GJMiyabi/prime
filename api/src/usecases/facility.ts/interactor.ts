@@ -5,6 +5,7 @@ import {
   FacilityOutputDto,
   FacilityUpdateResponse,
   FacilityUpdateDto,
+  ContactAddressDto,
 } from './input-port';
 import {
   IFacilityCommandRepository,
@@ -32,134 +33,173 @@ export class FacilityInteractor implements IFacilityInputPort {
   ) {}
 
   async create(input: FacilityCreateDto): Promise<FacilityOutputDto> {
-    const persons: Person[] = [];
-    if (input.personId) {
-      const person = await this.personQueryRepository.find(
-        new Id(input.personId),
-      );
-      if (person) {
-        persons.push(person);
+    try {
+      const persons: Person[] = [];
+      if (input.personId) {
+        const person = await this.personQueryRepository.find(
+          new Id(input.personId),
+        );
+        if (person) {
+          persons.push(person);
+        }
       }
+
+      const facilityId = new Id();
+      const facility = new Facility({
+        id: facilityId,
+        name: input.name,
+        idNumber: input.idNumber,
+        persons,
+      });
+
+      const newFacility = await this.facilityCommandRepository.create(facility);
+
+      const address = new ContactAddress({
+        id: new Id(),
+        value: input.contactValue,
+        type: input.contactType || ContactType.EMAIL,
+        facilityId: facilityId,
+      });
+
+      const newAddress =
+        await this.contactAddressCommandRepository.create(address);
+
+      return this.mapFacilityToDto(newFacility, [newAddress]);
+    } catch (error) {
+      throw new Error(
+        `Failed to create facility: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
-
-    const facilityId = new Id();
-    const data = new Facility({
-      id: facilityId,
-      name: input.name,
-      idNumber: input.IDNumber,
-      persons,
-    });
-
-    const newData = await this.facilityCommandRepository.create(data);
-    const address = new ContactAddress({
-      id: new Id(),
-      value: input.value,
-      type: ContactType.EMAIL,
-      facilityId: facilityId,
-    });
-    const newAddress =
-      await this.contactAddressCommandRepository.create(address);
-
-    return {
-      name: newData.getName(),
-      IDNumber: newData.getIDNumber(),
-      contactAddress: [newAddress],
-    };
   }
 
   async update(input: FacilityUpdateDto): Promise<FacilityUpdateResponse> {
-    const exist = await this.facilityQueryRepository.find(new Id(input.id));
-    if (!exist) {
+    try {
+      const exist = await this.facilityQueryRepository.find(new Id(input.id));
+      if (!exist) {
+        return {
+          result: false,
+          message: '該当するデータがありません',
+        };
+      }
+
+      const name = input.name ?? exist.getName();
+      const idNumber = input.idNumber ?? exist.getIDNumber();
+      const organizationId = input.organizationId ?? exist.getOrganizationId();
+
+      const persons = await this.getPersonsForUpdate(input.persons, exist);
+      const contactAddresses = await this.updateContactAddresses(
+        input.contactAddresses,
+        exist,
+      );
+
+      const updatedFacility = new Facility({
+        id: new Id(exist.id.value),
+        name: name,
+        idNumber: idNumber,
+        organizationId: organizationId,
+        persons: persons,
+        contactAddresses,
+      });
+
+      const result =
+        await this.facilityCommandRepository.update(updatedFacility);
+
+      return {
+        result: true,
+        message: '更新成功',
+        data: this.mapFacilityToDto(result, contactAddresses),
+      };
+    } catch (error) {
       return {
         result: false,
-        message: '該当するデータがありません',
-        data: undefined,
+        message: `更新エラー: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
+  }
 
-    const name = input.name ? input.name : exist.getName();
-    const IDNumber = input.IDNumber ? input.IDNumber : exist.getIDNumber();
-    const organizationId = input.organizationId
-      ? input.organizationId
-      : exist.getOrganizationId();
-
-    let persons: Person[] = [];
-    if (input.persons && input.persons.length > 0) {
-      const personPromises = input.persons.map((pid) =>
-        this.personQueryRepository.find(new Id(pid)),
-      );
-      const foundPersons = await Promise.all(personPromises);
-      persons = foundPersons.filter((p): p is Person => p !== undefined);
-    } else {
-      persons = exist.getPersons();
+  // Private helper methods
+  private async getPersonsForUpdate(
+    personIds: string[] | undefined,
+    existingFacility: Facility,
+  ): Promise<Person[]> {
+    if (!personIds || personIds.length === 0) {
+      return existingFacility.getPersons();
     }
 
-    let contactAddresses: ContactAddress[] = exist.getContactAddresses();
+    const personPromises = personIds.map((pid) =>
+      this.personQueryRepository.find(new Id(pid)),
+    );
+    const foundPersons = await Promise.all(personPromises);
+    return foundPersons.filter((p): p is Person => p !== undefined);
+  }
 
-    if (input.contactAddresses && input.contactAddresses.length > 0) {
-      const updatedAddresses: ContactAddress[] = [];
-      const inputIdSet = new Set(
-        input.contactAddresses
-          .filter((ca) => !!ca.id)
-          .map((ca) => ca.id as string),
-      );
-      const existingForDeletion = exist.getContactAddresses();
-      for (const ex of existingForDeletion) {
-        const exId = ex.id?.value as string | undefined;
-        if (exId && !inputIdSet.has(exId)) {
-          await this.contactAddressCommandRepository.delete(new Id(exId));
-        }
-      }
-
-      for (const ca of input.contactAddresses) {
-        if (ca.id) {
-          const existingCA = await this.contactAddressQueryRepository.find(
-            new Id(ca.id),
-          );
-          if (Array.isArray(existingCA)) {
-            updatedAddresses.push(...existingCA);
-          } else if (existingCA) {
-            updatedAddresses.push(existingCA);
-          }
-        } else {
-          // 新規作成
-          const newCA = new ContactAddress({
-            id: new Id(),
-            value: ca.value,
-            type: ca.type,
-            facilityId: exist.getIdVO(),
-          });
-          const saved =
-            await this.contactAddressCommandRepository.create(newCA);
-          updatedAddresses.push(saved);
-        }
-      }
-
-      contactAddresses = updatedAddresses;
+  private async updateContactAddresses(
+    inputAddresses: ContactAddressDto[] | undefined,
+    existingFacility: Facility,
+  ): Promise<ContactAddress[]> {
+    if (!inputAddresses || inputAddresses.length === 0) {
+      return existingFacility.getContactAddresses();
     }
 
-    const newFacility = new Facility({
-      id: new Id(exist.id.value),
-      name: name,
-      idNumber: IDNumber,
-      organizationId: organizationId,
-      persons: persons,
-      contactAddresses,
+    // Delete addresses not in input
+    const inputIdSet = new Set(
+      inputAddresses.filter((ca) => !!ca.id).map((ca) => ca.id as string),
+    );
+
+    const existingAddresses = existingFacility.getContactAddresses();
+    const addressesToDelete = existingAddresses.filter((addr) => {
+      const addrId = addr.id?.value;
+      return addrId && !inputIdSet.has(addrId);
     });
 
-    const update = await this.facilityCommandRepository.update(newFacility);
+    const deletePromises = addressesToDelete.map((addr) =>
+      this.contactAddressCommandRepository.delete(addr.id),
+    );
+
+    await Promise.all(deletePromises);
+
+    // Update or create addresses
+    const updatedAddresses: ContactAddress[] = [];
+    for (const ca of inputAddresses) {
+      if (ca.id) {
+        const existingCA = await this.contactAddressQueryRepository.find(
+          new Id(ca.id),
+        );
+        if (existingCA) {
+          updatedAddresses.push(existingCA);
+        }
+      } else {
+        const newCA = new ContactAddress({
+          id: new Id(),
+          value: ca.value,
+          type: ca.type,
+          facilityId: existingFacility.getIdVO(),
+        });
+        const saved = await this.contactAddressCommandRepository.create(newCA);
+        updatedAddresses.push(saved);
+      }
+    }
+
+    return updatedAddresses;
+  }
+
+  private mapFacilityToDto(
+    facility: Facility,
+    contactAddresses?: ContactAddress[],
+  ): FacilityOutputDto {
+    const addresses = contactAddresses || facility.getContactAddresses();
 
     return {
-      result: true,
-      message: '更新成功',
-      data: {
-        id: update.getId(),
-        IDNumber: update.getIDNumber(),
-        name: update.getName(),
-        organizationId: update.getOrganizationId(),
-        persons: update.getPersons().map((p) => p.id.value),
-        contactAddresses: update.getContactAddresses().map((c) => c.getValue()),
-      },
+      id: facility.getId(),
+      name: facility.getName(),
+      idNumber: facility.getIDNumber(),
+      contactAddresses: addresses.map((addr) => ({
+        id: addr.getId(),
+        value: addr.getValue(),
+        type: addr.getType(),
+      })),
+      persons: facility.getPersons().map((p) => p.id.value),
+      organizationId: facility.getOrganizationId(),
     };
   }
 }

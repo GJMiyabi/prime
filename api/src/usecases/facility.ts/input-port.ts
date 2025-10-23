@@ -1,44 +1,44 @@
-import { ContactAddress } from 'src/domains/entities/contact-address';
-import { ContactAddressSaveDto } from '../contact-address/input-port';
+import { ContactType } from 'src/domains/type/contact';
 
 export abstract class IFacilityInputPort {
   abstract create(input: FacilityCreateDto): Promise<FacilityOutputDto>;
   abstract update(input: FacilityUpdateDto): Promise<FacilityUpdateResponse>;
 }
 
-export type FacilityCreateDto = {
+export interface FacilityCreateDto {
   name: string;
-  IDNumber: string;
+  idNumber: string;
+  contactValue: string;
+  contactType?: ContactType;
+  personId?: string;
+}
+
+export interface ContactAddressDto {
+  id?: string;
   value: string;
-  personId: string;
-};
+  type: ContactType;
+}
 
-export type FacilityOutputDto = {
-  name: string;
-  IDNumber: string;
-  contactAddress?: ContactAddress[];
-};
-
-export type FacilityUpdateDto = {
+export interface FacilityOutputDto {
   id: string;
   name: string;
-  IDNumber: string;
-  organizationId?: string;
+  idNumber: string;
+  contactAddresses?: ContactAddressDto[];
   persons?: string[];
-  contactAddresses?: ContactAddressSaveDto[];
-};
+  organizationId?: string;
+}
 
-export type FacilityUpdateOutputDto = {
+export interface FacilityUpdateDto {
   id: string;
-  name: string;
-  IDNumber: string;
+  name?: string;
+  idNumber?: string;
   organizationId?: string;
   persons?: string[];
-  contactAddresses?: string[];
-};
+  contactAddresses?: ContactAddressDto[];
+}
 
-export type FacilityUpdateResponse = {
+export interface FacilityUpdateResponse {
   result: boolean;
   message: string;
-  data: FacilityUpdateOutputDto | undefined;
-};
+  data?: FacilityOutputDto;
+}

@@ -2,19 +2,12 @@ import { Mutation, Resolver, Args, Query, Info } from '@nestjs/graphql';
 import {
   IPersonInputPort,
   AdminPersonCreateDto,
-  SinglePersonAndContact,
+  PersonCreateDto,
+  PersonIncludeOptions,
 } from 'src/usecases/person/input-port';
 import { GraphQLResolveInfo } from 'graphql';
 
 import graphqlFields from 'graphql-fields';
-
-// 型定義を追加
-interface PersonIncludeOptions {
-  contacts?: boolean;
-  principal?: { account?: boolean };
-  facilities?: boolean;
-  organization?: boolean;
-}
 
 // Narrow util types
 type GraphQLFieldsTree = { [key: string]: GraphQLFieldsTree };
@@ -79,7 +72,7 @@ export class PersonMutationResolver {
   }
 
   @Mutation('createSinglePerson')
-  async createSinglePerson(@Args('input') input: SinglePersonAndContact) {
+  async createSinglePerson(@Args('input') input: PersonCreateDto) {
     try {
       const person = await this.personInputport.createPerson(input);
 
@@ -128,7 +121,8 @@ export class PersonQueryResolver {
             ? {
                 include: {
                   account:
-                    include?.principal?.account ?? has('principal.account'),
+                    include?.principal?.include?.account ??
+                    has('principal.account'),
                 },
               }
             : undefined,
