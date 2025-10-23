@@ -8,6 +8,14 @@ import { GraphQLResolveInfo } from 'graphql';
 
 import graphqlFields from 'graphql-fields';
 
+// 型定義を追加
+interface PersonIncludeOptions {
+  contacts?: boolean;
+  principal?: { account?: boolean };
+  facilities?: boolean;
+  organization?: boolean;
+}
+
 // Narrow util types
 type GraphQLFieldsTree = { [key: string]: GraphQLFieldsTree };
 
@@ -55,29 +63,47 @@ export class PersonMutationResolver {
   constructor(private readonly personInputport: IPersonInputPort) {}
 
   @Mutation('saveAdminPerson')
-  async saveAdminUser(@Args('input') input: AdminPersonCreateDto) {
-    const admin = await this.personInputport.createAdmin(input);
+  async saveAdminPerson(@Args('input') input: AdminPersonCreateDto) {
+    try {
+      const admin = await this.personInputport.createAdmin(input);
 
-    return {
-      __type: 'AdminPerson',
-      ...admin,
-    };
+      return {
+        __type: 'AdminPerson',
+        ...admin,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to create admin person: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   @Mutation('createSinglePerson')
   async createSinglePerson(@Args('input') input: SinglePersonAndContact) {
-    const person = await this.personInputport.createPerson(input);
+    try {
+      const person = await this.personInputport.createPerson(input);
 
-    return {
-      __type: 'SinglePeron',
-      ...person,
-    };
+      return {
+        __type: 'SinglePerson',
+        ...person,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to create person: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   @Mutation('deletePerson')
   async deletePerson(@Args('id') id: string): Promise<boolean> {
-    await this.personInputport.delete(id);
-    return true;
+    try {
+      await this.personInputport.delete(id);
+      return true;
+    } catch (error) {
+      throw new Error(
+        `Failed to delete person: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 }
 
@@ -88,38 +114,38 @@ export class PersonQueryResolver {
   @Query(() => Object, { name: 'person' })
   async findPerson(
     @Args('id') id: string,
-    @Args('include')
-    include?: {
-      contacts?: boolean;
-      principal?: { account?: boolean };
-      facilities?: boolean;
-      organization?: boolean;
-    },
+    @Args('include') include?: PersonIncludeOptions,
     @Info() info?: GraphQLResolveInfo,
   ) {
-    const selectionTree: unknown = getSelectionTree(info);
-    const has = (path: string) => hasPath(selectionTree, path);
+    try {
+      const selectionTree: unknown = getSelectionTree(info);
+      const has = (path: string) => hasPath(selectionTree, path);
 
-    const effectiveInclude = {
-      contacts: include?.contacts ?? has('contacts'),
-      principal:
-        include?.principal || has('principal')
-          ? {
-              include: {
-                account:
-                  include?.principal?.account ?? has('principal.account'),
-              },
-            }
-          : undefined,
-      facilities: include?.facilities ?? has('facilities'),
-      organization: include?.organization ?? has('organization'),
-    } as const;
+      const effectiveInclude = {
+        contacts: include?.contacts ?? has('contacts'),
+        principal:
+          include?.principal || has('principal')
+            ? {
+                include: {
+                  account:
+                    include?.principal?.account ?? has('principal.account'),
+                },
+              }
+            : undefined,
+        facilities: include?.facilities ?? has('facilities'),
+        organization: include?.organization ?? has('organization'),
+      } as const;
 
-    const person = await this.personInputPort.find(id, effectiveInclude);
+      const person = await this.personInputPort.find(id, effectiveInclude);
 
-    return {
-      __type: 'Person',
-      ...person,
-    };
+      return {
+        __type: 'Person',
+        ...person,
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to find person: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 }
