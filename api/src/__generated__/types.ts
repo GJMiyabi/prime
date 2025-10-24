@@ -90,7 +90,7 @@ export type Mutation = {
   createSinglePerson: SinglePerson;
   deletePerson: Scalars['Boolean']['output'];
   login?: Maybe<AuthPayload>;
-  saveAdminPeron: AdminPerson;
+  saveAdminPerson: AdminPerson;
 };
 
 export type MutationCreateSinglePersonArgs = {
@@ -105,7 +105,7 @@ export type MutationLoginArgs = {
   input: LoginInput;
 };
 
-export type MutationSaveAdminPeronArgs = {
+export type MutationSaveAdminPersonArgs = {
   input: AdminPersonCreateInput;
 };
 

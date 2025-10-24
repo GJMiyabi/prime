@@ -76,10 +76,46 @@ export class ContactAddressCommandRepository
     return prismaToContactAddress(updated);
   }
 
-  async delete(personId: Id): Promise<void> {
+  async delete(id: Id): Promise<void> {
+    await this.prisma.contactAddress.delete({
+      where: { id: id.value },
+    });
+  }
+
+  async deleteByPersonId(personId: Id): Promise<void> {
     await this.prisma.contactAddress.deleteMany({
       where: { personId: personId.value },
     });
+  }
+
+  async bulkCreate(
+    contactAddresses: ContactAddress[],
+  ): Promise<ContactAddress[]> {
+    const createData = contactAddresses.map((contact) => ({
+      id: contact.getId(),
+      personId: contact.getPersonId(),
+      facilityId: contact.getFacilityId(),
+      organizationId: contact.getOrganizationId(),
+      type: contact.getType(),
+      value: contact.getValue(),
+    }));
+
+    // PrismaのcreateMany後に、作成されたレコードを取得
+    await this.prisma.contactAddress.createMany({
+      data: createData,
+    });
+
+    // 作成されたレコードのIDで検索して返す
+    const createdIds = contactAddresses.map((contact) => contact.getId());
+    const created = await this.prisma.contactAddress.findMany({
+      where: {
+        id: {
+          in: createdIds,
+        },
+      },
+    });
+
+    return created.map(prismaToContactAddress);
   }
 }
 
@@ -88,19 +124,72 @@ export class ContactAddressQueryRepository
 {
   constructor(private readonly prisma = PrismaClientSingleton.instance) {}
 
-  async findByPersonId(personId: string): Promise<ContactAddress[]> {
+  async find(id: Id): Promise<ContactAddress | undefined> {
+    const row = await this.prisma.contactAddress.findUnique({
+      where: { id: id.value },
+    });
+    return row ? prismaToContactAddress(row) : undefined;
+  }
+
+  async findByPersonId(personId: Id): Promise<ContactAddress[]> {
     const rows = await this.prisma.contactAddress.findMany({
-      where: { personId: personId },
+      where: { personId: personId.value },
       orderBy: { id: 'asc' },
     });
 
     return rows.map(prismaToContactAddress);
   }
 
-  async find(id: Id): Promise<ContactAddress | undefined> {
-    const row = await this.prisma.contactAddress.findUnique({
+  async findByContactType(
+    contactType: ContactType,
+    personId?: Id,
+  ): Promise<ContactAddress[]> {
+    const rows = await this.prisma.contactAddress.findMany({
+      where: {
+        type: contactType,
+        ...(personId && { personId: personId.value }),
+      },
+      orderBy: { id: 'asc' },
+    });
+
+    return rows.map(prismaToContactAddress);
+  }
+
+  async list(filters?: {
+    personId?: Id;
+    contactType?: ContactType;
+    value?: string;
+    isActive?: boolean;
+  }): Promise<ContactAddress[]> {
+    const rows = await this.prisma.contactAddress.findMany({
+      where: {
+        ...(filters?.personId && { personId: filters.personId.value }),
+        ...(filters?.contactType && { type: filters.contactType }),
+        ...(filters?.value && { value: { contains: filters.value } }),
+      },
+      orderBy: { id: 'asc' },
+    });
+
+    return rows.map(prismaToContactAddress);
+  }
+
+  async exists(id: Id): Promise<boolean> {
+    const count = await this.prisma.contactAddress.count({
       where: { id: id.value },
     });
-    return row ? prismaToContactAddress(row) : undefined;
+    return count > 0;
+  }
+
+  async existsByPersonIdAndType(
+    personId: Id,
+    contactType: ContactType,
+  ): Promise<boolean> {
+    const count = await this.prisma.contactAddress.count({
+      where: {
+        personId: personId.value,
+        type: contactType,
+      },
+    });
+    return count > 0;
   }
 }
