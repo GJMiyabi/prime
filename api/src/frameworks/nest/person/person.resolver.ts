@@ -1,4 +1,12 @@
-import { Mutation, Resolver, Args, Query, Info } from '@nestjs/graphql';
+import {
+  Mutation,
+  Resolver,
+  Args,
+  Query,
+  Info,
+  // Context, // 認証コンテキストを使用する場合
+} from '@nestjs/graphql';
+// import { UseGuards } from '@nestjs/common'; // 認証ガードを使用する場合
 import {
   IPersonInputPort,
   AdminPersonCreateDto,
@@ -6,6 +14,15 @@ import {
   PersonIncludeOptions,
 } from 'src/usecases/person/input-port';
 import { GraphQLResolveInfo } from 'graphql';
+// import { GqlAuthGuard } from '../auth/guards/gql-auth.guard'; // 認証ガードを使用する場合
+// import { GraphContext } from '../shared/graphql/graphql.context'; // 認証コンテキストを使用する場合
+
+// 認証が必要なリゾルバーの使用例:
+// @UseGuards(GqlAuthGuard)
+// async someAuthenticatedMethod(@Context() context: GraphContext) {
+//   const principalId = context.principalId;
+//   // 認証されたユーザーのプリンシパルIDを使用した処理
+// }
 
 import graphqlFields from 'graphql-fields';
 

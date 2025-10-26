@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AuthModule } from './auth/auth.module';
+
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { DateResolver } from 'graphql-scalars';
 import { GraphContext } from './shared/graphql/graphql.context';
@@ -57,6 +58,8 @@ import {
     AuthModule,
   ],
   providers: [
+    // グローバル認証ガード（必要に応じてコメントアウトを解除）
+    // { provide: APP_GUARD, useClass: GqlAuthGuard },
     { provide: IPersonCommandRepository, useClass: PersonCommandRepository },
     { provide: IPersonQueryRepository, useClass: PersonQueryRepository },
     { provide: IPersonInputPort, useClass: PersonInteractor },
