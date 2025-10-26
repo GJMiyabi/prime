@@ -14,6 +14,7 @@ import {
   loginUser,
 } from './app.e2e-test-type';
 
+// --- Authentication e2e tests ---
 describe('Authentication (e2e)', () => {
   let app: INestApplication;
 
@@ -189,10 +190,10 @@ describe('Authentication (e2e)', () => {
     });
   });
 });
-
+// --- Person create → get → delete e2e tests ---
 describe('Person create → get → delete (e2e)', () => {
   let app: INestApplication;
-  const createdPersonIds: string[] = []; // Track created persons for cleanup
+  const createdPersonIds: string[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({

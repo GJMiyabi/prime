@@ -7,6 +7,7 @@ import * as argon2 from 'argon2';
 import { AccountQueryRepository } from 'src/interface-adapters/repositories/prisma/account.repository';
 import { JwtService } from '@nestjs/jwt';
 import { IAccountQueryRepository } from 'src/domains/repositories/account.repositories';
+import { PrismaClientSingleton } from 'src/interface-adapters/shared/prisma-client';
 
 // Return only a sanitized view (no password)
 export type AuthenticatedAccount = {
@@ -18,6 +19,8 @@ export type AuthenticatedAccount = {
 
 @Injectable()
 export class AuthService {
+  private readonly prisma = PrismaClientSingleton.instance;
+
   constructor(
     @Inject(IAccountQueryRepository)
     private readonly accountQueryRepository: AccountQueryRepository,
@@ -57,9 +60,17 @@ export class AuthService {
     const account = await this.validateUser(username, password);
     if (!account) return null;
 
+    // Principalの情報を取得してroleを含める
+    const principal = await this.prisma.principal.findUnique({
+      where: { id: account.principalId },
+    });
+
     const payload = {
       sub: account.principalId, // principalId を sub にするのが認可設計的に吉
       username: account.username,
+      email: account.email,
+      role: principal?.kind || 'STUDENT', // デフォルトはSTUDENT
+      accountId: account.id,
     };
 
     return {
