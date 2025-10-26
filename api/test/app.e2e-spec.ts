@@ -190,6 +190,233 @@ async function findTestPerson(
   return body.data?.person;
 }
 
+// Auth-related type definitions
+interface AuthPayload {
+  accessToken: string;
+}
+
+interface SchemaIntrospection {
+  __schema: {
+    queryType: {
+      name: string;
+    };
+  };
+}
+
+// Helper function for login
+async function loginUser(
+  app: INestApplication,
+  username: string,
+  password: string,
+): Promise<string> {
+  const LOGIN_MUTATION = gql`
+    mutation Login($input: LoginInput!) {
+      login(input: $input) {
+        accessToken
+      }
+    }
+  `;
+
+  const response = await gqlRequest(app, LOGIN_MUTATION, {
+    input: { username, password },
+  });
+
+  expect(response.status).toBe(200);
+
+  const body = response.body as unknown as GraphQLResponse<{
+    login: AuthPayload | null;
+  }>;
+
+  if (body.errors) {
+    throw new Error(`Login failed: ${JSON.stringify(body.errors)}`);
+  }
+
+  const loginData = body.data?.login;
+  if (!loginData?.accessToken) {
+    throw new Error(
+      `Login did not return access token. Response: ${JSON.stringify(body)}`,
+    );
+  }
+
+  return loginData.accessToken;
+}
+
+describe('Authentication (e2e)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  describe('Login functionality', () => {
+    it('should login successfully with admin credentials', async () => {
+      const token = await loginUser(app, 'admin', 'admin123');
+      expect(token).toBeDefined();
+      expect(typeof token).toBe('string');
+      expect(token.length).toBeGreaterThan(0);
+    });
+
+    it('should login successfully with teacher credentials', async () => {
+      const token = await loginUser(app, 'teacher', 'teacher123');
+      expect(token).toBeDefined();
+      expect(typeof token).toBe('string');
+      expect(token.length).toBeGreaterThan(0);
+    });
+
+    it('should login successfully with student credentials', async () => {
+      const token = await loginUser(app, 'student', 'student123');
+      expect(token).toBeDefined();
+      expect(typeof token).toBe('string');
+      expect(token.length).toBeGreaterThan(0);
+    });
+
+    it('should return null for invalid credentials', async () => {
+      const LOGIN_MUTATION = gql`
+        mutation Login($input: LoginInput!) {
+          login(input: $input) {
+            accessToken
+          }
+        }
+      `;
+
+      const response = await gqlRequest(app, LOGIN_MUTATION, {
+        input: { username: 'invalid', password: 'wrongpassword' },
+      });
+
+      expect(response.status).toBe(200);
+
+      const body = response.body as unknown as GraphQLResponse<{
+        login: AuthPayload | null;
+      }>;
+
+      // Login should return null for invalid credentials (not throw an error)
+      expect(body.data?.login).toBeNull();
+      expect(body.errors).toBeUndefined();
+    });
+
+    it('should return null for non-existent user', async () => {
+      const LOGIN_MUTATION = gql`
+        mutation Login($input: LoginInput!) {
+          login(input: $input) {
+            accessToken
+          }
+        }
+      `;
+
+      const response = await gqlRequest(app, LOGIN_MUTATION, {
+        input: { username: 'nonexistent', password: 'anypassword' },
+      });
+
+      expect(response.status).toBe(200);
+
+      const body = response.body as unknown as GraphQLResponse<{
+        login: AuthPayload | null;
+      }>;
+
+      expect(body.data?.login).toBeNull();
+      expect(body.errors).toBeUndefined();
+    });
+
+    it('should handle empty credentials gracefully', async () => {
+      const LOGIN_MUTATION = gql`
+        mutation Login($input: LoginInput!) {
+          login(input: $input) {
+            accessToken
+          }
+        }
+      `;
+
+      const response = await gqlRequest(app, LOGIN_MUTATION, {
+        input: { username: '', password: '' },
+      });
+
+      expect(response.status).toBe(200);
+
+      const body = response.body as unknown as GraphQLResponse<{
+        login: AuthPayload | null;
+      }>;
+
+      expect(body.data?.login).toBeNull();
+      expect(body.errors).toBeUndefined();
+    });
+  });
+
+  describe('Token-based authentication', () => {
+    let adminToken: string;
+    let teacherToken: string;
+    let studentToken: string;
+
+    beforeAll(async () => {
+      // Get tokens for all user types
+      adminToken = await loginUser(app, 'admin', 'admin123');
+      teacherToken = await loginUser(app, 'teacher', 'teacher123');
+      studentToken = await loginUser(app, 'student', 'student123');
+    });
+
+    it('should accept valid JWT tokens in requests', async () => {
+      // This test verifies that tokens can be used in subsequent requests
+      // We'll use a simple query that doesn't require authentication but accepts it
+      const QUERY = gql`
+        query {
+          __schema {
+            queryType {
+              name
+            }
+          }
+        }
+      `;
+
+      // Test with admin token
+      const adminResponse = await gqlRequest(app, QUERY, {}, adminToken);
+      expect(adminResponse.status).toBe(200);
+      const adminBody =
+        adminResponse.body as unknown as GraphQLResponse<SchemaIntrospection>;
+      expect(adminBody.data?.__schema?.queryType?.name).toBe('Query');
+
+      // Test with teacher token
+      const teacherResponse = await gqlRequest(app, QUERY, {}, teacherToken);
+      expect(teacherResponse.status).toBe(200);
+      const teacherBody =
+        teacherResponse.body as unknown as GraphQLResponse<SchemaIntrospection>;
+      expect(teacherBody.data?.__schema?.queryType?.name).toBe('Query');
+
+      // Test with student token
+      const studentResponse = await gqlRequest(app, QUERY, {}, studentToken);
+      expect(studentResponse.status).toBe(200);
+      const studentBody =
+        studentResponse.body as unknown as GraphQLResponse<SchemaIntrospection>;
+      expect(studentBody.data?.__schema?.queryType?.name).toBe('Query');
+    });
+
+    it('should work without token for public endpoints', async () => {
+      const QUERY = gql`
+        query {
+          __schema {
+            queryType {
+              name
+            }
+          }
+        }
+      `;
+
+      const response = await gqlRequest(app, QUERY);
+      expect(response.status).toBe(200);
+      const body =
+        response.body as unknown as GraphQLResponse<SchemaIntrospection>;
+      expect(body.data?.__schema?.queryType?.name).toBe('Query');
+    });
+  });
+});
+
 describe('Person create → get → delete (e2e)', () => {
   let app: INestApplication;
   const createdPersonIds: string[] = []; // Track created persons for cleanup

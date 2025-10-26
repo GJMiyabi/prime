@@ -13,6 +13,7 @@ import {
   PersonCreateDto,
   PersonIncludeOptions,
 } from 'src/usecases/person/input-port';
+import { ContactType } from 'src/domains/type/contact';
 import { GraphQLResolveInfo } from 'graphql';
 // import { GqlAuthGuard } from '../auth/guards/gql-auth.guard'; // 認証ガードを使用する場合
 // import { GraphContext } from '../shared/graphql/graphql.context'; // 認証コンテキストを使用する場合
@@ -73,13 +74,37 @@ export class PersonMutationResolver {
   constructor(private readonly personInputport: IPersonInputPort) {}
 
   @Mutation('saveAdminPerson')
-  async saveAdminPerson(@Args('input') input: AdminPersonCreateDto) {
+  async saveAdminPerson(@Args('input') input: unknown) {
     try {
-      const admin = await this.personInputport.createAdmin(input);
+      // GraphQL input validation and transformation
+      const rawInput = input as Record<string, unknown>;
+
+      if (!rawInput.name || typeof rawInput.name !== 'string') {
+        throw new Error('name field is required and must be a string');
+      }
+      if (!rawInput.value || typeof rawInput.value !== 'string') {
+        throw new Error('value field is required and must be a string');
+      }
+      if (!rawInput.type || typeof rawInput.type !== 'string') {
+        throw new Error('type field is required and must be a string');
+      }
+
+      // GraphQL input (value, type) を DTO format (contactValue, contactType) に変換
+      const adminDto: AdminPersonCreateDto = {
+        id: typeof rawInput.id === 'string' ? rawInput.id : undefined,
+        name: rawInput.name,
+        contactValue: rawInput.value,
+        contactType: rawInput.type as ContactType,
+      };
+
+      const admin = await this.personInputport.createAdmin(adminDto);
 
       return {
         __type: 'AdminPerson',
-        ...admin,
+        id: admin.id,
+        name: admin.name,
+        value: admin.contacts?.[0]?.value || '',
+        type: admin.contacts?.[0]?.type || 'EMAIL',
       };
     } catch (error) {
       throw new Error(
@@ -89,13 +114,32 @@ export class PersonMutationResolver {
   }
 
   @Mutation('createSinglePerson')
-  async createSinglePerson(@Args('input') input: PersonCreateDto) {
+  async createSinglePerson(@Args('input') input: unknown) {
     try {
-      const person = await this.personInputport.createPerson(input);
+      // GraphQL input validation and transformation
+      const rawInput = input as Record<string, unknown>;
+
+      if (!rawInput.name || typeof rawInput.name !== 'string') {
+        throw new Error('name field is required and must be a string');
+      }
+      if (!rawInput.value || typeof rawInput.value !== 'string') {
+        throw new Error('value field is required and must be a string');
+      }
+
+      // GraphQL input (value) を DTO format (contactValue) に変換
+      const personDto: PersonCreateDto = {
+        name: rawInput.name,
+        contactValue: rawInput.value,
+        contactType: ContactType.EMAIL, // デフォルトでEMAIL
+      };
+
+      const person = await this.personInputport.createPerson(personDto);
 
       return {
         __type: 'SinglePerson',
-        ...person,
+        id: person.id,
+        name: person.name,
+        value: person.contacts?.[0]?.value || '',
       };
     } catch (error) {
       throw new Error(
@@ -148,6 +192,10 @@ export class PersonQueryResolver {
       } as const;
 
       const person = await this.personInputPort.find(id, effectiveInclude);
+
+      if (!person) {
+        return null;
+      }
 
       return {
         __type: 'Person',
