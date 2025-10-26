@@ -1,23 +1,287 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Prime API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+組織・施設・人物管理システムのAPIサーバー
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
+## 概要
+
+このAPIは、以下の機能を提供するNestJS + GraphQL + Prismaベースのバックエンドシステムです：
+
+- **認証・認可**: JWT認証による安全なAPIアクセス
+- **組織管理**: 組織、施設、人物の階層的な管理
+- **GraphQL API**: 柔軟なデータクエリとミューテーション
+- **REST API**: 認証エンドポイント等の提供
+
+## 技術スタック
+
+- **Framework**: NestJS
+- **Database**: PostgreSQL
+- **ORM**: Prisma
+- **API**: GraphQL (Apollo Server) + REST API
+- **Authentication**: JWT + Passport
+- **Testing**: Jest (E2E テスト)
+
+## 必要環境
+
+- Node.js 18.x 以上
+- npm 9.x 以上
+- PostgreSQL 14.x 以上
+
+## セットアップ
+
+### 1. 依存関係のインストール
+
+```bash
+npm install
+```
+
+### 2. 環境変数の設定
+
+`.env`ファイルを作成し、以下の設定を行います：
+
+```env
+# データベース設定
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=appdb
+POSTGRES_PORT=5432
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/appdb"
+
+# JWT認証設定
+JWT_SECRET=your_super_secret_jwt_key_here_please_change_in_production
+JWT_EXPIRES_IN=24h
+```
+
+### 3. データベースの設定
+
+PostgreSQLが起動していることを確認し、データベースのマイグレーションを実行します：
+
+```bash
+# Prismaクライアントの生成
+npm run generate
+
+# データベースマイグレーション
+npx prisma migrate dev --schema=src/frameworks/prisma/schema.prisma
+
+# または、既存のDBに対してスキーマをプッシュ
+npx prisma db push --schema=src/frameworks/prisma/schema.prisma
+```
+
+### 4. シードデータの作成
+
+テスト用のデータとアカウントを作成します：
+
+```bash
+npm run seed
+```
+
+作成されるアカウント：
+
+- **管理者**: `username: admin`, `password: admin123`
+- **教師**: `username: teacher`, `password: teacher123`
+- **学生**: `username: student`, `password: student123`
+
+## 起動方法
+
+### 開発サーバーの起動
+
+```bash
+# 開発モード（ファイル監視あり）
+npm run dev
+
+# または
+npm run start:dev
+```
+
+サーバーは `http://localhost:4000` で起動します。
+
+### 本番モード
+
+```bash
+# ビルド
+npm run build
+
+# 本番サーバー起動
+npm run start:prod
+```
+
+## API エンドポイント
+
+### GraphQL
+
+- **エンドポイント**: `http://localhost:4000/graphql`
+- **GraphQL Playground**: 開発モードで自動的に利用可能
+
+### REST API
+
+- **ログイン**: `POST /auth/login`
+
+## 使用方法
+
+### 1. ログイン（GraphQL）
+
+```graphql
+mutation {
+  login(input: { username: "admin", password: "admin123" }) {
+    accessToken
+  }
+}
+```
+
+### 2. ログイン（REST API）
+
+```bash
+curl -X POST http://localhost:4000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin123"}'
+```
+
+### 3. 認証が必要なAPIの利用
+
+取得したアクセストークンをAuthorizationヘッダーに設定：
+
+```bash
+Authorization: Bearer <your_access_token>
+```
+
+### 4. 人物の作成
+
+```graphql
+mutation {
+  saveAdminPerson(
+    input: { name: "田中太郎", value: "tanaka@example.com", type: EMAIL }
+  ) {
+    id
+    name
+    value
+    type
+  }
+}
+```
+
+### 5. 人物の検索
+
+```graphql
+query {
+  person(id: "person_id_here") {
+    id
+    name
+    contacts {
+      id
+      type
+      value
+    }
+  }
+}
+```
+
+## テスト
+
+### E2Eテストの実行
+
+```bash
+npm run test:e2e
+```
+
+テストには以下が含まれます：
+
+- 認証機能のテスト（ログイン、JWTトークン検証）
+- Person CRUD操作のテスト
+- GraphQL API統合テスト
+
+### 単体テストの実行
+
+```bash
+npm run test
+```
+
+## データベース管理
+
+### Prisma Studio
+
+データベースの内容をGUIで確認・編集できます：
+
+```bash
+npm run studio
+```
+
+### マイグレーション
+
+スキーマを変更した場合：
+
+```bash
+npx prisma migrate dev --schema=src/frameworks/prisma/schema.prisma
+```
+
+### データベースのリセット
+
+```bash
+npx prisma migrate reset --schema=src/frameworks/prisma/schema.prisma
+```
+
+## ファイル構成
+
+```
+src/
+├── domains/           # ドメインモデル
+│   ├── entities/      # エンティティ
+│   ├── repositories/  # リポジトリインターフェース
+│   ├── type/         # ドメイン型定義
+│   └── value-object/ # 値オブジェクト
+├── frameworks/        # フレームワーク層
+│   ├── nest/         # NestJS設定
+│   │   ├── auth/     # 認証機能
+│   │   ├── person/   # 人物管理
+│   │   └── shared/   # 共通機能
+│   └── prisma/       # Prisma設定
+├── interface-adapters/ # インターフェースアダプター
+│   └── repositories/ # Prismaリポジトリ実装
+├── shared/           # 共通ユーティリティ
+└── usecases/         # ユースケース層
+```
+
+## トラブルシューティング
+
+### ポート競合エラー
+
+ポート4000が使用中の場合、他のポートを指定：
+
+```bash
+PORT=4001 npm run dev
+```
+
+### データベース接続エラー
+
+1. PostgreSQLが起動しているか確認
+2. `.env`ファイルの`DATABASE_URL`が正しいか確認
+3. データベースが存在するか確認
+
+### マイグレーションエラー
+
+データベースをリセットして再実行：
+
+```bash
+npx prisma migrate reset --schema=src/frameworks/prisma/schema.prisma
+npm run seed
+```
+
+## 開発
+
+### 新しいエンティティの追加
+
+1. `src/domains/entities/`にエンティティクラスを作成
+2. `src/frameworks/prisma/schema.prisma`にPrismaモデルを追加
+3. リポジトリインターフェースとPrisma実装を作成
+4. ユースケースとリゾルバーを実装
+
+### GraphQLスキーマの更新
+
+1. `graphql-schema/`でスキーマファイルを更新
+2. `npm run codegen`でTypeScript型を生成
+
+## ライセンス
+
+MIT License
+
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
