@@ -1,7 +1,7 @@
 "use client";
 import { Header } from "../../_components/common/header";
 import { useParams } from "next/navigation";
-import { useGetPerson } from "../_hook/person/get";
+import { useGetPerson } from "../../_hooks/person/get";
 import {
   CollapsibleCardContainer,
   CardContent,
@@ -11,11 +11,9 @@ export default function PersonDetailPage() {
   const params = useParams<{ personId: string }>();
   const personId = params?.personId;
 
-  const { data, loading, error, refetch } = useGetPerson(personId, {
+  const { data} = useGetPerson(personId, {
     contacts: true,
   });
-
-  console.log("GraphQL errors:", error, data);
 
   return (
     <div>

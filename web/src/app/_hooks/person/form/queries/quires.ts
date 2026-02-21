@@ -1,6 +1,4 @@
 import { gql } from "@apollo/client";
-import { useQuery } from "@apollo/client/react";
-import { GetPersonData, GetPersonVars } from "@/app/_types/person";
 
 export const GET_PERSON = gql`
   query GetPerson($id: ID!, $include: PersonIncludeInput) {
@@ -33,10 +31,3 @@ export const GET_PERSON = gql`
     }
   }
 `;
-
-export function useGetPerson(id: string, include?: GetPersonVars["include"]) {
-  return useQuery<GetPersonData, GetPersonVars>(GET_PERSON, {
-    variables: { id, include },
-    skip: !id,
-  });
-}

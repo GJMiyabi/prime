@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useCreateSinglePerson } from "@/app/person/_hook/person/form/create";
+import { useCreateSinglePerson } from "@/app/_hooks/person/form";
 import { useRouter } from "next/navigation";
 
 type Props = {

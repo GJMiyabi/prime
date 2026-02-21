@@ -4,6 +4,7 @@
 import * as React from "react";
 import { useAuth } from "../../../_contexts/auth-context";
 import { useLogout } from "../../../_hooks/useLogout";
+import { navItems } from "./navItems";
 
 /**
  * ヘッダーコンポーネント
@@ -12,12 +13,6 @@ import { useLogout } from "../../../_hooks/useLogout";
 export const Header: React.FC = () => {
   const { user } = useAuth();
   const { executeLogout } = useLogout();
-
-  const navItems = [
-    { title: "HOME", href: "/" },
-    { title: "人物管理", href: "/person" },
-    { title: "組織管理", href: "/organization" },
-  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-blue-700/30 bg-blue-600 text-white">
