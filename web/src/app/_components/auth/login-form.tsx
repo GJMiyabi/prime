@@ -1,57 +1,21 @@
+// フレームワーク層：ログインフォームUIコンポーネント（表示のみ）
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
-import { jwtDecode } from "jwt-decode";
-import { useAuth } from "../../_contexts/auth-context";
-import {
-  LOGIN_MUTATION,
-  LoginInput,
-  LoginResponse,
-} from "../../_hooks/useLogin";
+import { useLogin } from "../../_hooks/useLogin";
+import { LoginInput } from "../../_types/auth";
 
-// JWTペイロードの型定義
-interface JWTPayload {
-  sub: string; // principalId
-  username: string;
-  email?: string;
-  role: string;
-  accountId: string;
-  iat?: number;
-  exp?: number;
-}
-
+/**
+ * ログインフォームコンポーネント
+ * ビジネスロジックは全てカスタムフックとユースケースに委譲
+ */
 export default function LoginForm() {
   const [formData, setFormData] = useState<LoginInput>({
     username: "",
     password: "",
   });
-  const [errors, setErrors] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
-  const router = useRouter();
-
-  // ユーザーの役割に応じたリダイレクト先を決定する関数
-  const getRedirectPath = (role: string): string => {
-    switch (role.toUpperCase()) {
-      case "ADMIN":
-        return "/"; // 管理者はホームページ
-      case "TEACHER":
-        return "/teacher/dashboard"; // 教師用ダッシュボード
-      case "STUDENT":
-        return "/student/dashboard"; // 学生用ダッシュボード
-      default:
-        return "/"; // デフォルトはホームページ
-    }
-  };
-
-  // Apollo Clientを直接使用
-  const client = new ApolloClient({
-    link: new HttpLink({ uri: "http://localhost:4000/graphql" }),
-    cache: new InMemoryCache(),
-  });
+  const { executeLogin, isLoading, error, clearError } = useLogin();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -59,59 +23,12 @@ export default function LoginForm() {
       ...prev,
       [name]: value,
     }));
-    // エラーをクリア
-    if (errors) setErrors("");
+    if (error) clearError();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setErrors("");
-
-    try {
-      const { data } = await client.mutate<
-        LoginResponse,
-        { input: LoginInput }
-      >({
-        mutation: LOGIN_MUTATION,
-        variables: { input: formData },
-      });
-
-      if (data?.login?.accessToken) {
-        try {
-          // JWTトークンをデコードして実際のユーザー情報を取得
-          const decodedToken = jwtDecode<JWTPayload>(data.login.accessToken);
-
-          const userData = {
-            id: decodedToken.accountId,
-            username: decodedToken.username,
-            email: decodedToken.email || `${decodedToken.username}@example.com`,
-            role: decodedToken.role,
-            principalId: decodedToken.sub,
-          };
-
-          login(data.login.accessToken, userData);
-
-          // ユーザーの役割に応じてリダイレクト先を決定
-          const redirectPath = getRedirectPath(decodedToken.role);
-          router.push(redirectPath);
-        } catch (decodeError) {
-          console.error("JWT decode error:", decodeError);
-          setErrors("認証情報の処理に問題が発生しました。");
-        }
-      } else {
-        setErrors(
-          "ログインに失敗しました。ユーザー名またはパスワードが正しくありません。"
-        );
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      setErrors(
-        "ログインに失敗しました。ユーザー名またはパスワードが正しくありません。"
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    await executeLogin(formData);
   };
 
   return (
@@ -159,9 +76,9 @@ export default function LoginForm() {
             </div>
           </div>
 
-          {errors && (
+          {error && (
             <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded">
-              {errors}
+              {error}
             </div>
           )}
 
