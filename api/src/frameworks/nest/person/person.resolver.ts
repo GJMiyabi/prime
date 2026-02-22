@@ -6,7 +6,7 @@ import {
   Info,
   // Context, // 認証コンテキストを使用する場合
 } from '@nestjs/graphql';
-// import { UseGuards } from '@nestjs/common'; // 認証ガードを使用する場合
+import { UseGuards } from '@nestjs/common';
 import {
   IPersonInputPort,
   AdminPersonCreateDto,
@@ -15,6 +15,10 @@ import {
 } from 'src/usecases/person/input-port';
 import { ContactType } from 'src/domains/type/contact';
 import { GraphQLResolveInfo } from 'graphql';
+import { PrincipalKind } from 'src/domains/type/principal-kind';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { SanitizationPipe } from '../shared/pipes/sanitization.pipe';
 // import { GqlAuthGuard } from '../auth/guards/gql-auth.guard'; // 認証ガードを使用する場合
 // import { GraphContext } from '../shared/graphql/graphql.context'; // 認証コンテキストを使用する場合
 
@@ -70,11 +74,13 @@ function hasPath(obj: unknown, path: string): boolean {
 }
 
 @Resolver()
+@UseGuards(RolesGuard)
 export class PersonMutationResolver {
   constructor(private readonly personInputport: IPersonInputPort) {}
 
   @Mutation('saveAdminPerson')
-  async saveAdminPerson(@Args('input') input: unknown) {
+  @Roles(PrincipalKind.ADMIN) // ✅ ADMINのみアクセス可能
+  async saveAdminPerson(@Args('input', SanitizationPipe) input: unknown) {
     try {
       // GraphQL input validation and transformation
       const rawInput = input as Record<string, unknown>;
@@ -114,7 +120,13 @@ export class PersonMutationResolver {
   }
 
   @Mutation('createSinglePerson')
-  async createSinglePerson(@Args('input') input: unknown) {
+  @Roles(
+    PrincipalKind.ADMIN,
+    PrincipalKind.TEACHER,
+    PrincipalKind.STUDENT,
+    PrincipalKind.STAKEHOLDER,
+  ) // ✅ 認証済みユーザー全員がアクセス可能
+  async createSinglePerson(@Args('input', SanitizationPipe) input: unknown) {
     try {
       // GraphQL input validation and transformation
       const rawInput = input as Record<string, unknown>;
@@ -149,7 +161,8 @@ export class PersonMutationResolver {
   }
 
   @Mutation('deletePerson')
-  async deletePerson(@Args('id') id: string): Promise<boolean> {
+  @Roles(PrincipalKind.ADMIN) // ✅ ADMINのみ削除可能
+  async deletePerson(@Args('id', SanitizationPipe) id: string): Promise<boolean> {
     try {
       await this.personInputport.delete(id);
       return true;

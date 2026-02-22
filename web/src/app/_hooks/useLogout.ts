@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { successToast, errorToast } from "../_lib/toast-helpers";
 import { logger } from "../_lib/logger";
 import { useAuth } from "../_contexts/auth-context";
+import { apiClient } from "../_lib/api-client";
 
 /**
  * ログアウト処理用Hook
- * httpOnly Cookie を削除
+ * httpOnly Cookie を削除（CSRF保護あり）
  */
 export function useLogout() {
   const router = useRouter();
@@ -19,25 +20,17 @@ export function useLogout() {
     setIsLoading(true);
 
     try {
-      // Next.js API経由でログアウト（Cookie削除）
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      // apiClient経由でログアウト（自動的にCSRFトークン付与）
+      await apiClient.post("/api/auth/logout");
 
-      if (response.ok) {
-        // 認証コンテキストをクリア
-        setUser(null);
+      // 認証コンテキストをクリア
+      setUser(null);
 
-        // 成功通知
-        successToast("ログアウトしました");
+      // 成功通知
+      successToast("ログアウトしました");
 
-        // ログイン画面にリダイレクト
-        router.push("/login");
-      } else {
-        const result = await response.json();
-        errorToast(result.error || "ログアウトに失敗しました");
-      }
+      // ログイン画面にリダイレクト
+      router.push("/login");
     } catch (error) {
       logger.error("ログアウト処理で予期しないエラーが発生", {
         component: "useLogout",

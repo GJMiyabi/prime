@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./index.css";
 import { ApolloWrapper } from "./providers";
-import { ToastProvider, ErrorBoundary } from "./_components/common";
+import { ToastProvider, ErrorBoundary, WebVitalsReporter } from "./_components/common";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,6 +17,7 @@ export default function RootLayout({
     <ApolloWrapper>
       <html lang="ja">
         <body>
+          <WebVitalsReporter />
           <ErrorBoundary>
             {children}
           </ErrorBoundary>

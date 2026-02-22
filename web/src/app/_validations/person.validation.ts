@@ -4,6 +4,8 @@
  * バックエンドのドメインルールと整合性を保つ
  */
 
+import { sanitizeInput } from "../_lib/sanitize";
+
 /**
  * Personバリデーションルールの定数
  */
@@ -24,15 +26,18 @@ export const PersonValidationRules = {
 export interface ValidationResult {
   isValid: boolean;
   error?: string;
+  sanitized?: string; // サニタイズ済みの値
 }
 
 /**
- * Person名のバリデーション
+ * Person名のバリデーション（サニタイゼーション付き）
  * @param name - 検証する名前
- * @returns バリデーション結果
+ * @returns バリデーション結果（sanitized フィールドを含む）
  */
 export const validatePersonName = (name: string): ValidationResult => {
-  const trimmed = name.trim();
+  // ✅ Step 1: サニタイゼーション
+  const sanitized = sanitizeInput(name);
+  const trimmed = sanitized.trim();
 
   if (!trimmed) {
     return {
@@ -55,16 +60,18 @@ export const validatePersonName = (name: string): ValidationResult => {
     };
   }
 
-  return { isValid: true };
+  return { isValid: true, sanitized };
 };
 
 /**
- * Person値のバリデーション
+ * Person値のバリデーション（サニタイゼーション付き）
  * @param value - 検証する値
- * @returns バリデーション結果
+ * @returns バリデーション結果（sanitized フィールドを含む）
  */
 export const validatePersonValue = (value: string): ValidationResult => {
-  const trimmed = value.trim();
+  // ✅ Step 1: サニタイゼーション
+  const sanitized = sanitizeInput(value);
+  const trimmed = sanitized.trim();
 
   if (!trimmed) {
     return {
@@ -73,7 +80,7 @@ export const validatePersonValue = (value: string): ValidationResult => {
     };
   }
 
-  return { isValid: true };
+  return { isValid: true, sanitized };
 };
 
 /**

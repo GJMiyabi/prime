@@ -43,9 +43,22 @@ export interface LoginResponse {
 
 /**
  * ユーザーロールの列挙型
+ * バックエンドの PrincipalKind と一致させる
  */
 export enum UserRole {
   ADMIN = "ADMIN",
   TEACHER = "TEACHER",
   STUDENT = "STUDENT",
+  STAKEHOLDER = "STAKEHOLDER",
 }
+
+/**
+ * ロールの階層レベル
+ * 権限比較に使用
+ */
+export const RoleLevel: Record<UserRole, number> = {
+  [UserRole.ADMIN]: 4,
+  [UserRole.TEACHER]: 3,
+  [UserRole.STUDENT]: 2,
+  [UserRole.STAKEHOLDER]: 1,
+};
