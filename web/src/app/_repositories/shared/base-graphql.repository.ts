@@ -9,7 +9,7 @@ import { hasGraphQLErrors, hasNetworkError } from "./apollo-error-guards";
  * ApolloClientの初期化とエラー型ガードを提供
  */
 export abstract class BaseGraphQLRepository {
-  protected client: ApolloClient<unknown>;
+  protected client: ApolloClient;
 
   constructor(graphqlEndpoint: string) {
     this.client = new ApolloClient({

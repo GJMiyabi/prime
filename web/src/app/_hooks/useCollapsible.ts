@@ -1,3 +1,5 @@
+"use client";
+
 // フレームワーク層：折りたたみ可能なコンポーネントの状態管理フック
 
 import { useState, useCallback } from "react";

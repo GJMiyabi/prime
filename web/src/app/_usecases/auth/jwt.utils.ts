@@ -1,7 +1,7 @@
 // ユースケース層：JWT関連のユーティリティ
 
 import { jwtDecode } from "jwt-decode";
-import { JWTPayload, User } from "../_types/auth";
+import { JWTPayload, User } from "../../_types/auth";
 
 /**
  * JWTトークンをデコードしてユーザー情報に変換

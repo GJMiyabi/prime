@@ -1,51 +1,65 @@
-// フレームワーク層：Person作成カスタムフック（ユースケースとUIの橋渡し）
+// フレームワーク層：Person作成カスタムフック（React Hook Formとビジネスロジック統合）
 
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreatePersonInput } from "../../_repositories/person.repository";
+import { personCreateSchema, PersonCreateFormData } from "../../_schemas/person.schema";
 import { usePersonUseCases } from "../factories/usePersonUseCases";
 
 /**
- * Person作成処理を扱うカスタムフック
+ * Person作成フォーム用Hook
+ * React Hook Formとビジネスロジックを統合
  */
 export function usePersonCreate() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // React Hook Formのセットアップ
+  const form = useForm<PersonCreateFormData>({
+    resolver: yupResolver(personCreateSchema),
+    mode: "onBlur", // フォーカスが外れた時にバリデーション
+    defaultValues: {
+      name: "",
+      value: "",
+    },
+  });
 
   // UseCaseファクトリーでRepositoryとUseCaseを初期化
   const { create: createPersonUseCase } = usePersonUseCases();
 
   /**
-   * Person作成処理を実行
+   * フォーム送信ハンドラ
+   * バリデーション済みのデータのみが渡される
    */
-  const executeCreate = async (
-    input: CreatePersonInput
-  ): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
+  const onSubmit = form.handleSubmit(async (data) => {
+    setIsSubmitting(true);
 
-    // ユースケースを実行（エラーログはUseCase層で記録済み）
-    const result = await createPersonUseCase.execute(input);
+    try {
+      // バリデーション済みのデータをUseCaseに渡す
+      const result = await createPersonUseCase.execute({
+        name: data.name.trim(),
+        value: data.value.trim(),
+      });
 
-    if (result.success && result.person) {
-      // 作成成功時は詳細ページへリダイレクト
-      router.push(`/person/${result.person.id}`);
-      setIsLoading(false);
-      return true;
-    } else {
-      setError(result.error || null);
-      setIsLoading(false);
-      return false;
+      if (result.success && result.person) {
+        // 成功時：詳細ページへリダイレクト
+        router.push(`/person/${result.person.id}`);
+      } else {
+        // エラーハンドリング
+        alert(result.error || "Person作成に失敗しました");
+      }
+    } catch (error) {
+      console.error("Person作成エラー:", error);
+      alert("予期しないエラーが発生しました");
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const clearError = () => setError(null);
+  });
 
   return {
-    executeCreate,
-    isLoading,
-    error,
-    clearError,
+    form,         // React Hook Formのメソッド全体
+    onSubmit,     // 送信ハンドラ
+    isSubmitting, // 送信中フラグ
   };
 }

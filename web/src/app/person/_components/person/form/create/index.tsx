@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { usePersonCreateForm } from "@/app/_hooks/person/form/usePersonCreateForm";
+import { usePersonCreate } from "@/app/_hooks/person/usePersonCreate";
 import * as CONSTANTS from "@/app/person/_constants";
 
 type Props = {
@@ -10,23 +10,18 @@ type Props = {
 
 /**
  * Person作成フォームコンポーネント
- * プレゼンテーション層：UIの表示とユーザー入力の受付のみを担当
- * ビジネスロジックはusePersonCreateFormに委譲
+ * React Hook Formで完全に制御され、バリデーションは_schemasで一元管理
  */
 const PersonCreateForm: React.FC<Props> = () => {
+  const { form, onSubmit, isSubmitting } = usePersonCreate();
   const {
-    name,
-    value,
-    setName,
-    setValue,
-    handleSubmit,
-    loading,
-    error,
-  } = usePersonCreateForm();
+    register,
+    formState: { errors },
+  } = form;
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={onSubmit}
       className="space-y-4 p-6 bg-white shadow rounded w-full max-w-md mx-auto"
       noValidate
     >
@@ -39,16 +34,6 @@ const PersonCreateForm: React.FC<Props> = () => {
           新しい{CONSTANTS.LABEL_PROFILE}情報を入力してください
         </p>
       </div>
-
-      {/* エラーメッセージ（グローバル） */}
-      {error && (
-        <div
-          className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded relative"
-          role="alert"
-        >
-          <span className="block sm:inline">{error}</span>
-        </div>
-      )}
 
       {/* 名前フィールド */}
       <div className="flex flex-col">
@@ -63,16 +48,14 @@ const PersonCreateForm: React.FC<Props> = () => {
           id="person-name"
           type="text"
           placeholder={CONSTANTS.LABEL_NAME_EN}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={loading}
-          required
+          {...register("name")}
+          disabled={isSubmitting}
           aria-required="true"
-          aria-invalid={!name && error ? "true" : "false"}
+          aria-invalid={errors.name ? "true" : "false"}
           className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
-        {!name && error && (
-          <p className="text-red-500 text-xs mt-1">名前は必須です</p>
+        {errors.name && (
+          <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
         )}
       </div>
 
@@ -89,16 +72,14 @@ const PersonCreateForm: React.FC<Props> = () => {
           id="person-value"
           type="text"
           placeholder={CONSTANTS.LABEL_VALUE}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          disabled={loading}
-          required
+          {...register("value")}
+          disabled={isSubmitting}
           aria-required="true"
-          aria-invalid={!value && error ? "true" : "false"}
+          aria-invalid={errors.value ? "true" : "false"}
           className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
-        {!value && error && (
-          <p className="text-red-500 text-xs mt-1">値は必須です</p>
+        {errors.value && (
+          <p className="text-red-500 text-xs mt-1">{errors.value.message}</p>
         )}
       </div>
 
@@ -106,10 +87,10 @@ const PersonCreateForm: React.FC<Props> = () => {
       <button
         type="submit"
         className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-        disabled={loading}
-        aria-busy={loading}
+        disabled={isSubmitting}
+        aria-busy={isSubmitting}
       >
-        {loading ? (
+        {isSubmitting ? (
           <>
             <svg
               className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"

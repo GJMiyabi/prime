@@ -18,29 +18,20 @@ export interface CreatePersonResult {
 
 /**
  * Person作成ユースケース
+ * バリデーションはフォーム層（_schemas）で完結しているため、ここでは省略
+ * ビジネスフロー制御とリポジトリ呼び出しに専念
  */
 export class CreatePersonUseCase {
   constructor(private personRepository: IPersonRepository) {}
 
   /**
    * Person作成処理を実行
+   * @param input - フォーム層でバリデーション済みの入力データ
    */
   async execute(input: CreatePersonInput): Promise<CreatePersonResult> {
     try {
-      // バリデーション
-      if (!input.name || input.name.trim().length === 0) {
-        return {
-          success: false,
-          error: ERROR_MESSAGES.PERSON.NAME_REQUIRED,
-        };
-      }
-
-      if (!input.value || input.value.trim().length === 0) {
-        return {
-          success: false,
-          error: ERROR_MESSAGES.PERSON.VALUE_REQUIRED,
-        };
-      }
+      // フォーム層で既にバリデーション済みのため、ここでは省略
+      // 必要に応じてビジネスルール（例: 重複チェック）のみ実行
 
       // リポジトリを通じてPerson作成APIを呼び出す
       const person = await this.personRepository.create(input);
