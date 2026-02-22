@@ -8,6 +8,10 @@
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
+
+# testing
+/coverage
+/.vitest
 !.yarn/versions
 
 # testing

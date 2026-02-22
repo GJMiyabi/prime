@@ -5,3 +5,7 @@ node_modules
 /generated/prisma
 # build output
 /dist
+
+# testing
+/coverage
+/.jest

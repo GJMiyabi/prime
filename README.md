@@ -1,5 +1,9 @@
 # Web Frontend - Next.js Application
 
+[![Test & Coverage](https://github.com/YOUR_ORG/YOUR_REPO/actions/workflows/test.yml/badge.svg)](https://github.com/YOUR_ORG/YOUR_REPO/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/YOUR_ORG/YOUR_REPO/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_ORG/YOUR_REPO)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 高品質なクリーンアーキテクチャを採用したNext.jsフロントエンドアプリケーション
 
 ## 📊 コード品質評価

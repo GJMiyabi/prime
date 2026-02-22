@@ -54,6 +54,8 @@ export function usePersonGet(
     };
 
     fetchPerson();
+    // includeとoptionsは安定したオブジェクト参照として扱う
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, includeKey, getPersonUseCase]);
 
   const refetch = async () => {
