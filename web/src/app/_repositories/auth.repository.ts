@@ -1,15 +1,8 @@
 // インターフェースアダプター層：認証APIとの通信を担当
 
-import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
+import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { LoginInput, LoginResponse } from "../_types/auth";
-
-const LOGIN_MUTATION = gql`
-  mutation Login($input: LoginInput!) {
-    login(input: $input) {
-      accessToken
-    }
-  }
-`;
+import { LOGIN_MUTATION } from "./graphql/mutations/auth.mutations";
 
 /**
  * 認証リポジトリのインターフェース
