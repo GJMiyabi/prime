@@ -1,37 +1,54 @@
-// フレームワーク層：ログアウトカスタムフック（ユースケースとUIの橋渡し）
+// フレームワーク層：ログアウトカスタムフック
 
-import { useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { successToast, errorToast } from "../_lib/toast-helpers";
+import { logger } from "../_lib/logger";
 import { useAuth } from "../_contexts/auth-context";
-import { LogoutUseCase } from "../_usecases/auth/logout.usecase";
 
 /**
- * ログアウト処理を扱うカスタムフック
+ * ログアウト処理用Hook
+ * httpOnly Cookie を削除
  */
 export function useLogout() {
-  const { logout: authContextLogout } = useAuth();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const { setUser } = useAuth();
 
-  // ユースケースをメモ化して再生成を防ぐ
-  const logoutUseCase = useMemo(() => {
-    return new LogoutUseCase();
-  }, []);
+  const executeLogout = async () => {
+    setIsLoading(true);
 
-  /**
-   * ログアウト処理を実行
-   */
-  const executeLogout = () => {
-    // 1. 認証コンテキストからログアウト
-    authContextLogout();
+    try {
+      // Next.js API経由でログアウト（Cookie削除）
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
-    // 2. ユースケースからリダイレクト先を取得
-    const redirectPath = logoutUseCase.execute();
+      if (response.ok) {
+        // 認証コンテキストをクリア
+        setUser(null);
 
-    // 3. リダイレクト
-    router.push(redirectPath);
+        // 成功通知
+        successToast("ログアウトしました");
+
+        // ログイン画面にリダイレクト
+        router.push("/login");
+      } else {
+        const result = await response.json();
+        errorToast(result.error || "ログアウトに失敗しました");
+      }
+    } catch (error) {
+      logger.error("ログアウト処理で予期しないエラーが発生", {
+        component: "useLogout",
+        action: "executeLogout",
+        error,
+      });
+      errorToast("予期しないエラーが発生しました");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  return {
-    executeLogout,
-  };
+  return { executeLogout, isLoading };
 }

@@ -6,29 +6,16 @@ import {
   ApolloClient,
   InMemoryCache,
 } from "@apollo/client-integration-nextjs";
-import { setContext } from "@apollo/client/link/context";
 
 function makeClient() {
   const httpLink = new HttpLink({
     uri: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/graphql",
-  });
-
-  const authLink = setContext((_, { headers }) => {
-    // トークンをlocalStorageから取得
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-
-    return {
-      headers: {
-        ...headers,
-        authorization: token ? `Bearer ${token}` : "",
-      },
-    };
+    credentials: "include", // ✅ Cookie を自動送信（httpOnly Cookie対応）
   });
 
   return new ApolloClient({
     cache: new InMemoryCache(),
-    link: authLink.concat(httpLink),
+    link: httpLink,
   });
 }
 

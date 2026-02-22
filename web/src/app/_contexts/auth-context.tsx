@@ -13,58 +13,49 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
   isLoading: boolean;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // ページロード時にlocalStorageからトークンを復元
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
-
-    if (storedToken && storedUser) {
+    // ページロード時にCookieからユーザー情報を復元
+    // API経由でユーザー情報を取得
+    const fetchUser = async () => {
       try {
-        const userData = JSON.parse(storedUser);
-        setToken(storedToken);
-        setUser(userData);
+        const response = await fetch("/api/auth/me", {
+          credentials: "include", // Cookie を送信
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        } else {
+          // 未認証または期限切れ
+          setUser(null);
+        }
       } catch (error) {
-        logger.error("保存されたユーザーデータのパースに失敗", {
+        logger.error("ユーザー情報の取得に失敗", {
           component: "AuthProvider",
-          action: "restoreSession",
+          action: "fetchUser",
           error,
         });
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+
+    fetchUser();
   }, []);
 
-  const login = (newToken: string, userData: User) => {
-    setToken(newToken);
-    setUser(userData);
-    localStorage.setItem("auth_token", newToken);
-    localStorage.setItem("auth_user", JSON.stringify(userData));
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
-  };
-
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, isLoading, setUser }}>
       {children}
     </AuthContext.Provider>
   );

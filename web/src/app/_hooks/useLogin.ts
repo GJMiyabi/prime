@@ -2,26 +2,23 @@
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { successToast, errorToast } from "../_lib/toast-helpers";
 import { logger } from "../_lib/logger";
 import { useAuth } from "../_contexts/auth-context";
-import { GraphQLAuthRepository } from "../_repositories/auth.repository";
-import { LoginUseCase } from "../_usecases/auth/login.usecase";
-import { getRedirectPathByRole } from "../_usecases/auth/redirect.usecase";
 import { loginSchema, LoginFormData } from "../_schemas/auth.schema";
-import { CONFIG } from "../_constants/config";
+import { getRedirectPathByRole } from "../_usecases/auth/redirect.usecase";
 
 /**
  * ログインフォーム用Hook
- * React Hook Formとビジネスロジックを統合
+ * React Hook FormとビジネスロジックをNext.js API経由で統合
  */
 export function useLogin() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const { login: authContextLogin } = useAuth();
+  const { setUser } = useAuth();
 
   // React Hook Formのセットアップ
   const form = useForm<LoginFormData>({
@@ -33,12 +30,6 @@ export function useLogin() {
     },
   });
 
-  // リポジトリとユースケースをメモ化して再生成を防ぐ
-  const loginUseCase = useMemo(() => {
-    const authRepository = new GraphQLAuthRepository(CONFIG.GRAPHQL_ENDPOINT);
-    return new LoginUseCase(authRepository);
-  }, []);
-
   /**
    * フォーム送信ハンドラ
    * バリデーション済みのデータのみが渡される
@@ -48,15 +39,24 @@ export function useLogin() {
     setLoginError(null);
 
     try {
-      // バリデーション済みのデータをUseCaseに渡す
-      const result = await loginUseCase.execute({
-        username: data.username.trim(),
-        password: data.password,
+      // Next.js API経由でログイン（httpOnly Cookie設定）
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Cookie を受け取る
+        body: JSON.stringify({
+          username: data.username.trim(),
+          password: data.password,
+        }),
       });
 
-      if (result.success && result.accessToken && result.user) {
-        // 認証コンテキストにログイン情報を保存
-        authContextLogin(result.accessToken, result.user);
+      const result = await response.json();
+
+      if (response.ok && result.success && result.user) {
+        // 認証コンテキストにユーザー情報を保存
+        setUser(result.user);
 
         // 成功通知
         successToast(`ようこそ、${result.user.username}さん`);
