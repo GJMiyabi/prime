@@ -1,24 +1,23 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { decodeTokenToUser } from '../jwt.utils';
 import { jwtDecode } from 'jwt-decode';
 
 // Mock jwt-decode
-vi.mock('jwt-decode', () => ({
-  jwtDecode: vi.fn(),
+jest.mock('jwt-decode', () => ({
+  jwtDecode: jest.fn(),
 }));
 
 // Mock logger
-vi.mock('../../_lib/logger', () => ({
+jest.mock('../../../_lib/logger', () => ({
   logger: {
-    error: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
   },
 }));
 
 describe('jwt.utils', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('decodeTokenToUser', () => {
@@ -33,7 +32,7 @@ describe('jwt.utils', () => {
         sub: 'principal-123',
       };
 
-      vi.mocked(jwtDecode).mockReturnValue(mockPayload);
+      jest.mocked(jwtDecode).mockReturnValue(mockPayload);
 
       // Act
       const result = decodeTokenToUser(mockToken);
@@ -60,7 +59,7 @@ describe('jwt.utils', () => {
         sub: 'principal-123',
       };
 
-      vi.mocked(jwtDecode).mockReturnValue(mockPayload);
+      jest.mocked(jwtDecode).mockReturnValue(mockPayload);
 
       // Act
       const result = decodeTokenToUser(mockToken);
@@ -79,7 +78,7 @@ describe('jwt.utils', () => {
         sub: 'principal-123',
       };
 
-      vi.mocked(jwtDecode).mockReturnValue(mockPayload);
+      jest.mocked(jwtDecode).mockReturnValue(mockPayload);
 
       // Act
       const result = decodeTokenToUser(mockToken);
@@ -91,7 +90,7 @@ describe('jwt.utils', () => {
     it('デコードエラー時はエラーをスロー', () => {
       // Arrange
       const invalidToken = 'invalid-token';
-      vi.mocked(jwtDecode).mockImplementation(() => {
+      jest.mocked(jwtDecode).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -103,7 +102,7 @@ describe('jwt.utils', () => {
 
     it('空文字列のトークンの場合はエラーをスロー', () => {
       // Arrange
-      vi.mocked(jwtDecode).mockImplementation(() => {
+      jest.mocked(jwtDecode).mockImplementation(() => {
         throw new Error('Token is empty');
       });
 
@@ -127,7 +126,7 @@ describe('jwt.utils', () => {
           sub: `principal-${index}`,
         };
 
-        vi.mocked(jwtDecode).mockReturnValue(mockPayload);
+        jest.mocked(jwtDecode).mockReturnValue(mockPayload);
 
         // Act
         const result = decodeTokenToUser(mockToken);

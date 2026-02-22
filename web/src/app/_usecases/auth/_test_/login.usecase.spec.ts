@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LoginUseCase } from '../login.usecase';
 import { IAuthRepository } from '../../../_repositories/auth.repository';
 import { LoginInput } from '../../../_types/auth';
@@ -6,32 +5,30 @@ import { ERROR_MESSAGES } from '../../../_constants/error-messages';
 import * as jwtUtils from '../jwt.utils';
 
 // Mock jwt.utils
-vi.mock('../jwt.utils', () => ({
-  decodeTokenToUser: vi.fn(),
+jest.mock('../jwt.utils', () => ({
+  decodeTokenToUser: jest.fn(),
 }));
 
 // Mock logger
-vi.mock('../../../_lib/logger', () => ({
+jest.mock('../../../_lib/logger', () => ({
   logger: {
-    error: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
   },
 }));
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
-  let mockAuthRepository: {
-    login: ReturnType<typeof vi.fn<(input: LoginInput) => Promise<string | null>>>;
-  };
+  let mockAuthRepository: jest.Mocked<IAuthRepository>;
 
   beforeEach(() => {
     mockAuthRepository = {
-      login: vi.fn<(input: LoginInput) => Promise<string | null>>(),
-    };
+      login: jest.fn(),
+    } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-    useCase = new LoginUseCase(mockAuthRepository as IAuthRepository);
-    vi.clearAllMocks();
+    useCase = new LoginUseCase(mockAuthRepository);
+    jest.clearAllMocks();
   });
 
   describe('execute', () => {
@@ -52,7 +49,7 @@ describe('LoginUseCase', () => {
       };
 
       mockAuthRepository.login.mockResolvedValue(mockToken);
-      vi.mocked(jwtUtils.decodeTokenToUser).mockReturnValue(mockUser);
+      jest.mocked(jwtUtils.decodeTokenToUser).mockReturnValue(mockUser);
 
       // Act
       const result = await useCase.execute(input);
@@ -135,7 +132,7 @@ describe('LoginUseCase', () => {
 
       const mockToken = 'invalid-token';
       mockAuthRepository.login.mockResolvedValue(mockToken);
-      vi.mocked(jwtUtils.decodeTokenToUser).mockImplementation(() => {
+      jest.mocked(jwtUtils.decodeTokenToUser).mockImplementation(() => {
         throw new Error('認証情報の処理に問題が発生しました。');
       });
 
