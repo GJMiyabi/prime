@@ -8,6 +8,10 @@ import {
   SinglePerson,
   Person,
 } from "../_types/person";
+import {
+  ValidatedPersonName,
+  ValidatedPersonValue,
+} from "../_validations/person.validation";
 import { QueryOptions } from "../_types/repository";
 import { CREATE_SINGLE_PERSON } from "./graphql/mutations/person.mutations";
 import { GET_PERSON } from "./graphql/queries/person.queries";
@@ -16,10 +20,11 @@ import { BaseGraphQLRepository } from "./shared/base-graphql.repository";
 
 /**
  * Person作成用の入力データ
+ * Branded Typesを使用することで、バリデーション済みデータのみ受け付ける
  */
 export interface CreatePersonInput {
-  name: string;
-  value: string;
+  name: ValidatedPersonName;
+  value: ValidatedPersonValue;
 }
 
 /**

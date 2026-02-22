@@ -1,22 +1,37 @@
-// フレームワーク層：ログインカスタムフック（ユースケースとUIの橋渡し）
+// フレームワーク層：ログインカスタムフック（React Hook Formとビジネスロジック統合）
 
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { successToast, errorToast } from "../_lib/toast-helpers";
+import { logger } from "../_lib/logger";
 import { useAuth } from "../_contexts/auth-context";
 import { GraphQLAuthRepository } from "../_repositories/auth.repository";
 import { LoginUseCase } from "../_usecases/auth/login.usecase";
 import { getRedirectPathByRole } from "../_usecases/auth/redirect.usecase";
-import { LoginInput } from "../_types/auth";
+import { loginSchema, LoginFormData } from "../_schemas/auth.schema";
 import { CONFIG } from "../_constants/config";
 
 /**
- * ログイン処理を扱うカスタムフック
+ * ログインフォーム用Hook
+ * React Hook Formとビジネスロジックを統合
  */
 export function useLogin() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { login: authContextLogin } = useAuth();
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const { login: authContextLogin } = useAuth();
+
+  // React Hook Formのセットアップ
+  const form = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    mode: "onBlur", // フォーカスが外れた時にバリデーション
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
 
   // リポジトリとユースケースをメモ化して再生成を防ぐ
   const loginUseCase = useMemo(() => {
@@ -25,38 +40,55 @@ export function useLogin() {
   }, []);
 
   /**
-   * ログイン処理を実行
+   * フォーム送信ハンドラ
+   * バリデーション済みのデータのみが渡される
    */
-  const executeLogin = async (input: LoginInput): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
+  const onSubmit = form.handleSubmit(async (data) => {
+    setIsSubmitting(true);
+    setLoginError(null);
 
-    // ユースケースを実行（エラーログはUseCase層で記録済み）
-    const result = await loginUseCase.execute(input);
+    try {
+      // バリデーション済みのデータをUseCaseに渡す
+      const result = await loginUseCase.execute({
+        username: data.username.trim(),
+        password: data.password,
+      });
 
-    if (result.success && result.accessToken && result.user) {
-      // 認証コンテキストにログイン情報を保存
-      authContextLogin(result.accessToken, result.user);
+      if (result.success && result.accessToken && result.user) {
+        // 認証コンテキストにログイン情報を保存
+        authContextLogin(result.accessToken, result.user);
 
-      // ユーザーのロールに応じてリダイレクト
-      const redirectPath = getRedirectPathByRole(result.user.role);
-      router.push(redirectPath);
+        // 成功通知
+        successToast(`ようこそ、${result.user.username}さん`);
 
-      setIsLoading(false);
-      return true;
-    } else {
-      setError(result.error || null);
-      setIsLoading(false);
-      return false;
+        // ユーザーのロールに応じてリダイレクト
+        const redirectPath = getRedirectPathByRole(result.user.role);
+        router.push(redirectPath);
+      } else {
+        // エラーをセット（フォーム下部に表示）
+        const errorMessage = result.error || "ログインに失敗しました";
+        setLoginError(errorMessage);
+        errorToast(errorMessage);
+      }
+    } catch (error) {
+      logger.error("ログイン処理で予期しないエラーが発生", {
+        component: "useLogin",
+        action: "onSubmit",
+        error,
+        meta: { username: data.username },
+      });
+      const errorMessage = "予期しないエラーが発生しました";
+      setLoginError(errorMessage);
+      errorToast(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const clearError = () => setError(null);
+  });
 
   return {
-    executeLogin,
-    isLoading,
-    error,
-    clearError,
+    form,         // React Hook Formのメソッド全体
+    onSubmit,     // 送信ハンドラ
+    isSubmitting, // 送信中フラグ
+    loginError,   // ログインエラー（バリデーションエラーとは別）
   };
 }

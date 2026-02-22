@@ -1,5 +1,6 @@
 // ユースケース層：Person取得ビジネスロジック
 
+import { logger } from "../../_lib/logger";
 import {
   IPersonRepository,
   PersonIncludeOptions,
@@ -56,11 +57,11 @@ export class GetPersonUseCase {
       };
     } catch (error) {
       // エラーログはここで一元的に記録
-      console.error("[GetPersonUseCase] Error:", {
-        id,
-        include,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+      logger.error("Person取得ユースケースでエラーが発生", {
+        component: "GetPersonUseCase",
+        action: "execute",
+        error,
+        meta: { id, include },
       });
 
       return {

@@ -1,35 +1,19 @@
-// フレームワーク層：ログインフォームUIコンポーネント（表示のみ）
+// フレームワーク層：ログインフォームUIコンポーネント
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useLogin } from "../../_hooks/useLogin";
-import { LoginInput } from "../../_types/auth";
 
 /**
  * ログインフォームコンポーネント
- * ビジネスロジックは全てカスタムフックとユースケースに委譲
+ * React Hook Formで完全に制御され、バリデーションは_schemasで一元管理
  */
 export default function LoginForm() {
-  const [formData, setFormData] = useState<LoginInput>({
-    username: "",
-    password: "",
-  });
-
-  const { executeLogin, isLoading, error, clearError } = useLogin();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (error) clearError();
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await executeLogin(formData);
-  };
+  const { form, onSubmit, isSubmitting, loginError } = useLogin();
+  const {
+    register,
+    formState: { errors },
+  } = form;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -42,7 +26,7 @@ export default function LoginForm() {
             以下の認証情報でログインしてください
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={onSubmit} noValidate>
           <div className="space-y-4">
             <div>
               <label htmlFor="username" className="sr-only">
@@ -50,14 +34,20 @@ export default function LoginForm() {
               </label>
               <input
                 id="username"
-                name="username"
                 type="text"
-                required
-                value={formData.username}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                {...register("username")}
+                disabled={isSubmitting}
+                aria-required="true"
+                aria-invalid={errors.username ? "true" : "false"}
+                aria-describedby={errors.username ? "username-error" : undefined}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="ユーザー名"
               />
+              {errors.username && (
+                <p id="username-error" className="text-red-600 text-xs mt-1" role="alert">
+                  {errors.username.message}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
@@ -65,34 +55,41 @@ export default function LoginForm() {
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                {...register("password")}
+                disabled={isSubmitting}
+                aria-required="true"
+                aria-invalid={errors.password ? "true" : "false"}
+                aria-describedby={errors.password ? "password-error" : undefined}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="パスワード"
               />
+              {errors.password && (
+                <p id="password-error" className="text-red-600 text-xs mt-1" role="alert">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded">
-              {error}
+          {loginError && (
+            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded" role="alert">
+              {loginError}
             </div>
           )}
 
           <div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
               className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                isLoading
+                isSubmitting
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               }`}
             >
-              {isLoading ? "ログイン中..." : "ログイン"}
+              {isSubmitting ? "ログイン中..." : "ログイン"}
             </button>
           </div>
 

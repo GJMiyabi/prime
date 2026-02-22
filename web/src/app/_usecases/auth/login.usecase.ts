@@ -1,5 +1,6 @@
 // ユースケース層：ログインビジネスロジック
 
+import { logger } from "../../_lib/logger";
 import { IAuthRepository } from "../../_repositories/auth.repository";
 import { LoginInput, User } from "../../_types/auth";
 import { decodeTokenToUser } from "./jwt.utils";
@@ -46,10 +47,11 @@ export class LoginUseCase {
       };
     } catch (error) {
       // エラーログはここで一元的に記録
-      console.error("[LoginUseCase] Error:", {
-        username: input.username,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+      logger.error("ログインユースケースでエラーが発生", {
+        component: "LoginUseCase",
+        action: "execute",
+        error,
+        meta: { username: input.username },
       });
       
       return {

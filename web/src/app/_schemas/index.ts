@@ -4,3 +4,4 @@
  */
 
 export * from "./person.schema";
+export * from "./auth.schema";

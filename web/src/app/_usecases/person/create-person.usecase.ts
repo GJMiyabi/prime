@@ -1,5 +1,6 @@
 // ユースケース層：Person作成ビジネスロジック
 
+import { logger } from "../../_lib/logger";
 import {
   IPersonRepository,
   CreatePersonInput,
@@ -49,10 +50,11 @@ export class CreatePersonUseCase {
       };
     } catch (error) {
       // エラーログはここで一元的に記録
-      console.error("[CreatePersonUseCase] Error:", {
-        input,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+      logger.error("Person作成ユースケースでエラーが発生", {
+        component: "CreatePersonUseCase",
+        action: "execute",
+        error,
+        meta: { input },
       });
 
       return {

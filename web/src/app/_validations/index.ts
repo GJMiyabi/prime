@@ -4,3 +4,4 @@
  */
 
 export * from "./person.validation";
+export * from "./auth.validation";

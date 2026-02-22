@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { logger } from "../_lib/logger";
 
 interface User {
   id: string;
@@ -36,7 +37,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(storedToken);
         setUser(userData);
       } catch (error) {
-        console.error("Failed to parse stored user data:", error);
+        logger.error("保存されたユーザーデータのパースに失敗", {
+          component: "AuthProvider",
+          action: "restoreSession",
+          error,
+        });
         localStorage.removeItem("auth_token");
         localStorage.removeItem("auth_user");
       }
