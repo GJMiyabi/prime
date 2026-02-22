@@ -1,15 +1,18 @@
 // インターフェースアダプター層：Person APIとの通信を担当
 
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import {
   CreateSinglePersonData,
   CreateSinglePersonVars,
   GetPersonData,
   GetPersonVars,
   SinglePerson,
+  Person,
 } from "../_types/person";
+import { QueryOptions } from "../_types/repository";
 import { CREATE_SINGLE_PERSON } from "./graphql/mutations/person.mutations";
 import { GET_PERSON } from "./graphql/queries/person.queries";
+import { ERROR_MESSAGES } from "../_constants/error-messages";
+import { BaseGraphQLRepository } from "./shared/base-graphql.repository";
 
 /**
  * Person作成用の入力データ
@@ -36,21 +39,18 @@ export interface IPersonRepository {
   create(input: CreatePersonInput): Promise<SinglePerson | null>;
   findById(
     id: string,
-    include?: PersonIncludeOptions
-  ): Promise<GetPersonData["person"] | null>;
+    include?: PersonIncludeOptions,
+    options?: QueryOptions
+  ): Promise<Person | null>;
 }
 
 /**
  * GraphQLを使用したPersonリポジトリの実装
+ * BaseGraphQLRepositoryを継承してApolloClientとエラー型ガードを共有
  */
-export class GraphQLPersonRepository implements IPersonRepository {
-  private client: ApolloClient;
-
+export class GraphQLPersonRepository extends BaseGraphQLRepository implements IPersonRepository {
   constructor(graphqlEndpoint: string) {
-    this.client = new ApolloClient({
-      link: new HttpLink({ uri: graphqlEndpoint }),
-      cache: new InMemoryCache(),
-    });
+    super(graphqlEndpoint);
   }
 
   /**
@@ -68,8 +68,16 @@ export class GraphQLPersonRepository implements IPersonRepository {
 
       return data?.createSinglePerson || null;
     } catch (error) {
-      console.error("GraphQL create person error:", error);
-      throw new Error("Personの作成に失敗しました。");
+      // GraphQLエラーの詳細を処理
+      if (this.hasGraphQLErrors(error)) {
+        const message = error.graphQLErrors[0].message;
+        throw new Error(`${ERROR_MESSAGES.PERSON.CREATE_FAILED}: ${message}`);
+      }
+      // ネットワークエラー
+      if (this.hasNetworkError(error)) {
+        throw new Error(ERROR_MESSAGES.COMMON.NETWORK_ERROR);
+      }
+      throw new Error(ERROR_MESSAGES.PERSON.CREATE_FAILED);
     }
   }
 
@@ -78,19 +86,29 @@ export class GraphQLPersonRepository implements IPersonRepository {
    */
   async findById(
     id: string,
-    include?: PersonIncludeOptions
-  ): Promise<GetPersonData["person"] | null> {
+    include?: PersonIncludeOptions,
+    options?: QueryOptions
+  ): Promise<Person | null> {
     try {
       const { data } = await this.client.query<GetPersonData, GetPersonVars>({
         query: GET_PERSON,
         variables: { id, include },
-        fetchPolicy: "network-only", // 常に最新データを取得
+        // デフォルトはcache-first、必要に応じてnetwork-onlyなどを指定可能
+        fetchPolicy: options?.fetchPolicy || "cache-first",
       });
 
-      return data?.person || null;
+      return (data?.person as Person) || null;
     } catch (error) {
-      console.error("GraphQL get person error:", error);
-      throw new Error("Personの取得に失敗しました。");
+      // GraphQLエラーの詳細を処理
+      if (this.hasGraphQLErrors(error)) {
+        const message = error.graphQLErrors[0].message;
+        throw new Error(`${ERROR_MESSAGES.PERSON.FETCH_FAILED}: ${message}`);
+      }
+      // ネットワークエラー
+      if (this.hasNetworkError(error)) {
+        throw new Error(ERROR_MESSAGES.COMMON.NETWORK_ERROR);
+      }
+      throw new Error(ERROR_MESSAGES.PERSON.FETCH_FAILED);
     }
   }
 }

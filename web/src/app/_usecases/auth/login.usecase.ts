@@ -3,6 +3,7 @@
 import { IAuthRepository } from "../../_repositories/auth.repository";
 import { LoginInput, User } from "../../_types/auth";
 import { decodeTokenToUser } from "./jwt.utils";
+import { ERROR_MESSAGES } from "../../_constants/error-messages";
 
 /**
  * ログインユースケースの結果
@@ -31,8 +32,7 @@ export class LoginUseCase {
       if (!accessToken) {
         return {
           success: false,
-          error:
-            "ログインに失敗しました。ユーザー名またはパスワードが正しくありません。",
+          error: ERROR_MESSAGES.AUTH.LOGIN_FAILED,
         };
       }
 
@@ -45,19 +45,18 @@ export class LoginUseCase {
         user,
       };
     } catch (error) {
-      console.error("Login use case error:", error);
+      // エラーログはここで一元的に記録
+      console.error("[LoginUseCase] Error:", {
+        username: input.username,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       
-      if (error instanceof Error) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
-
       return {
         success: false,
-        error:
-          "ログインに失敗しました。ユーザー名またはパスワードが正しくありません。",
+        error: error instanceof Error 
+          ? error.message 
+          : ERROR_MESSAGES.AUTH.LOGIN_FAILED,
       };
     }
   }

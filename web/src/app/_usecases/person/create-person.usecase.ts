@@ -5,6 +5,7 @@ import {
   CreatePersonInput,
 } from "../../_repositories/person.repository";
 import { SinglePerson } from "../../_types/person";
+import { ERROR_MESSAGES } from "../../_constants/error-messages";
 
 /**
  * Person作成ユースケースの結果
@@ -30,14 +31,14 @@ export class CreatePersonUseCase {
       if (!input.name || input.name.trim().length === 0) {
         return {
           success: false,
-          error: "名前は必須です。",
+          error: ERROR_MESSAGES.PERSON.NAME_REQUIRED,
         };
       }
 
       if (!input.value || input.value.trim().length === 0) {
         return {
           success: false,
-          error: "値は必須です。",
+          error: ERROR_MESSAGES.PERSON.VALUE_REQUIRED,
         };
       }
 
@@ -47,7 +48,7 @@ export class CreatePersonUseCase {
       if (!person) {
         return {
           success: false,
-          error: "Personの作成に失敗しました。",
+          error: ERROR_MESSAGES.PERSON.CREATE_FAILED,
         };
       }
 
@@ -56,18 +57,18 @@ export class CreatePersonUseCase {
         person,
       };
     } catch (error) {
-      console.error("Create person use case error:", error);
-
-      if (error instanceof Error) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
+      // エラーログはここで一元的に記録
+      console.error("[CreatePersonUseCase] Error:", {
+        input,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
 
       return {
         success: false,
-        error: "Personの作成に失敗しました。",
+        error: error instanceof Error 
+          ? error.message 
+          : ERROR_MESSAGES.PERSON.CREATE_FAILED,
       };
     }
   }

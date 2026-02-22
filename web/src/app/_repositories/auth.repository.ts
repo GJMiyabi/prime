@@ -1,8 +1,9 @@
 // インターフェースアダプター層：認証APIとの通信を担当
 
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { LoginInput, LoginResponse } from "../_types/auth";
 import { LOGIN_MUTATION } from "./graphql/mutations/auth.mutations";
+import { ERROR_MESSAGES } from "../_constants/error-messages";
+import { BaseGraphQLRepository } from "./shared/base-graphql.repository";
 
 /**
  * 認証リポジトリのインターフェース
@@ -13,15 +14,11 @@ export interface IAuthRepository {
 
 /**
  * GraphQLを使用した認証リポジトリの実装
+ * BaseGraphQLRepositoryを継承してApolloClientとエラー型ガードを共有
  */
-export class GraphQLAuthRepository implements IAuthRepository {
-  private client: ApolloClient;
-
+export class GraphQLAuthRepository extends BaseGraphQLRepository implements IAuthRepository {
   constructor(graphqlEndpoint: string) {
-    this.client = new ApolloClient({
-      link: new HttpLink({ uri: graphqlEndpoint }),
-      cache: new InMemoryCache(),
-    });
+    super(graphqlEndpoint);
   }
 
   /**
@@ -39,8 +36,17 @@ export class GraphQLAuthRepository implements IAuthRepository {
 
       return data?.login?.accessToken || null;
     } catch (error) {
-      console.error("GraphQL login error:", error);
-      throw new Error("ログインに失敗しました。");
+      // GraphQLエラー（認証失敗など）
+      if (this.hasGraphQLErrors(error)) {
+        const message = error.graphQLErrors[0].message;
+        // 認証エラーの場合は元のメッセージを使用
+        throw new Error(message || ERROR_MESSAGES.AUTH.LOGIN_FAILED);
+      }
+      // ネットワークエラー
+      if (this.hasNetworkError(error)) {
+        throw new Error(ERROR_MESSAGES.COMMON.NETWORK_ERROR);
+      }
+      throw new Error(ERROR_MESSAGES.AUTH.LOGIN_FAILED);
     }
   }
 }

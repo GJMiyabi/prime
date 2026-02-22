@@ -1,26 +1,20 @@
 // フレームワーク層：Person作成カスタムフック（ユースケースとUIの橋渡し）
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { GraphQLPersonRepository } from "../../_repositories/person.repository";
-import { CreatePersonUseCase } from "../../_usecases/person/create-person.usecase";
 import { CreatePersonInput } from "../../_repositories/person.repository";
-
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+import { usePersonUseCases } from "../factories/usePersonUseCases";
 
 /**
  * Person作成処理を扱うカスタムフック
  */
 export function usePersonCreate() {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // リポジトリとユースケースをメモ化して再生成を防ぐ
-  const createPersonUseCase = useMemo(() => {
-    const personRepository = new GraphQLPersonRepository(GRAPHQL_ENDPOINT);
-    return new CreatePersonUseCase(personRepository);
-  }, []);
+  // UseCaseファクトリーでRepositoryとUseCaseを初期化
+  const { create: createPersonUseCase } = usePersonUseCases();
 
   /**
    * Person作成処理を実行
@@ -29,33 +23,24 @@ export function usePersonCreate() {
     input: CreatePersonInput
   ): Promise<boolean> => {
     setIsLoading(true);
-    setError("");
+    setError(null);
 
-    try {
-      // ユースケースを実行
-      const result = await createPersonUseCase.execute(input);
+    // ユースケースを実行（エラーログはUseCase層で記録済み）
+    const result = await createPersonUseCase.execute(input);
 
-      if (result.success && result.person) {
-        // 作成成功時は詳細ページへリダイレクト
-        router.push(`/person/${result.person.id}`);
-        return true;
-      } else {
-        setError(result.error || "Personの作成に失敗しました。");
-        return false;
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "予期しないエラーが発生しました。";
-      setError(errorMessage);
-      return false;
-    } finally {
+    if (result.success && result.person) {
+      // 作成成功時は詳細ページへリダイレクト
+      router.push(`/person/${result.person.id}`);
       setIsLoading(false);
+      return true;
+    } else {
+      setError(result.error || null);
+      setIsLoading(false);
+      return false;
     }
   };
 
-  const clearError = () => setError("");
+  const clearError = () => setError(null);
 
   return {
     executeCreate,

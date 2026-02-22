@@ -7,21 +7,20 @@ import { GraphQLAuthRepository } from "../_repositories/auth.repository";
 import { LoginUseCase } from "../_usecases/auth/login.usecase";
 import { getRedirectPathByRole } from "../_usecases/auth/redirect.usecase";
 import { LoginInput } from "../_types/auth";
-
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+import { CONFIG } from "../_constants/config";
 
 /**
  * ログイン処理を扱うカスタムフック
  */
 export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const { login: authContextLogin } = useAuth();
   const router = useRouter();
 
   // リポジトリとユースケースをメモ化して再生成を防ぐ
   const loginUseCase = useMemo(() => {
-    const authRepository = new GraphQLAuthRepository(GRAPHQL_ENDPOINT);
+    const authRepository = new GraphQLAuthRepository(CONFIG.GRAPHQL_ENDPOINT);
     return new LoginUseCase(authRepository);
   }, []);
 
@@ -30,38 +29,29 @@ export function useLogin() {
    */
   const executeLogin = async (input: LoginInput): Promise<boolean> => {
     setIsLoading(true);
-    setError("");
+    setError(null);
 
-    try {
-      // ユースケースを実行
-      const result = await loginUseCase.execute(input);
+    // ユースケースを実行（エラーログはUseCase層で記録済み）
+    const result = await loginUseCase.execute(input);
 
-      if (result.success && result.accessToken && result.user) {
-        // 認証コンテキストにログイン情報を保存
-        authContextLogin(result.accessToken, result.user);
+    if (result.success && result.accessToken && result.user) {
+      // 認証コンテキストにログイン情報を保存
+      authContextLogin(result.accessToken, result.user);
 
-        // ユーザーのロールに応じてリダイレクト
-        const redirectPath = getRedirectPathByRole(result.user.role);
-        router.push(redirectPath);
+      // ユーザーのロールに応じてリダイレクト
+      const redirectPath = getRedirectPathByRole(result.user.role);
+      router.push(redirectPath);
 
-        return true;
-      } else {
-        setError(result.error || "ログインに失敗しました。");
-        return false;
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "予期しないエラーが発生しました。";
-      setError(errorMessage);
-      return false;
-    } finally {
       setIsLoading(false);
+      return true;
+    } else {
+      setError(result.error || null);
+      setIsLoading(false);
+      return false;
     }
   };
 
-  const clearError = () => setError("");
+  const clearError = () => setError(null);
 
   return {
     executeLogin,

@@ -4,14 +4,16 @@ import {
   IPersonRepository,
   PersonIncludeOptions,
 } from "../../_repositories/person.repository";
-import { GetPersonData } from "../../_types/person";
+import { QueryOptions } from "../../_types/repository";
+import { Person } from "../../_types/person";
+import { ERROR_MESSAGES } from "../../_constants/error-messages";
 
 /**
  * Person取得ユースケースの結果
  */
 export interface GetPersonResult {
   success: boolean;
-  person?: GetPersonData["person"];
+  person?: Person;
   error?: string;
 }
 
@@ -26,24 +28,25 @@ export class GetPersonUseCase {
    */
   async execute(
     id: string,
-    include?: PersonIncludeOptions
+    include?: PersonIncludeOptions,
+    options?: QueryOptions
   ): Promise<GetPersonResult> {
     try {
       // バリデーション
       if (!id || id.trim().length === 0) {
         return {
           success: false,
-          error: "IDは必須です。",
+          error: ERROR_MESSAGES.PERSON.ID_REQUIRED,
         };
       }
 
       // リポジトリを通じてPerson取得APIを呼び出す
-      const person = await this.personRepository.findById(id, include);
+      const person = await this.personRepository.findById(id, include, options);
 
       if (!person) {
         return {
           success: false,
-          error: "Personが見つかりませんでした。",
+          error: ERROR_MESSAGES.PERSON.NOT_FOUND,
         };
       }
 
@@ -52,18 +55,19 @@ export class GetPersonUseCase {
         person,
       };
     } catch (error) {
-      console.error("Get person use case error:", error);
-
-      if (error instanceof Error) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
+      // エラーログはここで一元的に記録
+      console.error("[GetPersonUseCase] Error:", {
+        id,
+        include,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
 
       return {
         success: false,
-        error: "Personの取得に失敗しました。",
+        error: error instanceof Error 
+          ? error.message 
+          : ERROR_MESSAGES.PERSON.FETCH_FAILED,
       };
     }
   }
