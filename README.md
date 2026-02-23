@@ -159,14 +159,14 @@ export const ERROR_MESSAGES = {
 // 基底クラスによる共通化
 export abstract class BaseGraphQLRepository {
   protected client: ApolloClient<unknown>;
-  
+
   constructor(graphqlEndpoint: string) {
     this.client = new ApolloClient({
       link: new HttpLink({ uri: graphqlEndpoint }),
       cache: new InMemoryCache(),
     });
   }
-  
+
   protected hasGraphQLErrors(error: unknown) { /* ... */ }
   protected hasNetworkError(error: unknown) { /* ... */ }
 }
@@ -299,7 +299,7 @@ export class GetPersonUseCase {
     - Personリスト取得（1テスト）
   - Docker環境でのデータベース連携テスト
 * ✅ **テストカバレッジ 80%以上**
-  - **Backend**: Unit + Integration 合計938テスト、カバレッジ80%以上維持
+  - **Backend**: Unit + Integration 合計938テスト、カバレッジ80%以上維持(現在93％)
   - **Frontend**: 665テスト、カバレッジ87.85%
   - GitHub Actionsで自動カバレッジチェック
 
@@ -327,6 +327,298 @@ export class GetPersonUseCase {
   - at rest: 未実装
 * ❌ **GDPR/個人情報保護対応**: 未実装
 * ❌ **SOC 2 / ISO 27001準拠**: 未実装
+
+---
+
+## 🌐 外部標準マッピング（エンタープライズ対応）
+
+本プロジェクトの品質成熟度を国際標準・業界フレームワークにマッピングすることで、監査・審査・営業活動における説明責任を果たします。
+
+### 品質レベルと外部標準の対応表
+
+| 本プロジェクト | **OWASP ASVS v4.0** | **NIST SSDF (SP 800-218)** | **SOC 2 Trust Services** | **ISO/IEC 27001:2022** |
+|---------------|---------------------|---------------------------|-------------------------|------------------------|
+| **Level 1: 基本品質** | Level 1 - 基本要件<br>• V1.4 アクセス制御<br>• V1.5 入力検証<br>• V5.1 検証・サニタイゼーション | **PO.5** セキュアコーディング<br>• タイプセーフティ<br>• 静的解析（TypeScript strict） | **CC6.1** 論理的/物理的アクセス<br>• 入力検証<br>• 型安全性 | **A.8.1** ユーザーエンドポイント<br>**A.8.23** Webフィルタリング |
+| **Level 2: セキュリティ基礎** | Level 2 - 標準要件<br>• V2.1 パスワード認証<br>• V3.2 セッション管理<br>• V4.1 アクセス制御<br>• V8.1 データ保護<br>• V13.1 GraphQL保護 | **PO.3** 脅威応答<br>**PS.1** ソフトウェア保護<br>• 認証・認可<br>• CSRF対策<br>• トークン管理 | **CC6.2** 論理セキュリティ<br>**CC6.6** 暗号化（in-transit）<br>**CC6.7** システム操作<br>• RBAC<br>• JWT httpOnly | **A.5.15** アクセス制御<br>**A.8.3** 特権的アクセス<br>**A.8.5** セキュアな認証 |
+| **Level 3: 信頼性・テスト** | Level 2 継続<br>• V14.2 依存関係<br>• V14.4 テストカバレッジ | **PW.8** 脆弱性応答<br>**PW.9** 完全性検証<br>**RV.1** 脆弱性管理<br>• ユニット/統合/E2Eテスト<br>• カバレッジ80%以上 | **CC7.2** システム監視<br>**CC8.1** 変更管理<br>• 自動テスト<br>• CI/CD品質ゲート | **A.8.29** 開発・本番環境分離<br>**A.8.31** セキュリティテスト<br>**A.8.32** 変更管理 |
+| **Level 4: 運用品質** | Level 2 継続<br>• V7.1 ログ出力<br>• V7.2 ログ保護 | **PW.4** パイプライン保護<br>**PW.7** 成果物管理<br>**RV.2** 更新管理<br>• 構造化ログ<br>• エラートラッキング（Sentry） | **CC7.2** システム監視<br>**CC7.3** 評価・応答<br>**A1.2** 可用性の監視<br>• ヘルスチェック<br>• アラート設定 | **A.8.15** ログ記録<br>**A.8.16** 監視活動<br>**A.6.8** 技術脆弱性管理 |
+| **Level 5: コンプライアンス** | Level 3 - 高度な要件<br>• V7.1 ログコンテンツ<br>• V8.2 クライアント側データ保護<br>• V8.3 機微データ保護 | **PO.1** セキュリティ方針定義<br>**PO.2** 役割・責任<br>**PW.1** セキュアな設計<br>• 監査ログ（誰が・いつ・何を） | **CC6.8** 監査ログ<br>**P1.1** プライバシー通知<br>**P3.2** データ保持・削除<br>• GDPR対応 | **A.5.34** プライバシー・PII保護<br>**A.8.10** 情報削除<br>**A.8.11** データマスキング<br>**A.8.24** 監査ログ |
+
+### 外部標準の特徴と活用法
+
+#### 📘 OWASP ASVS (Application Security Verification Standard)
+- **目的**: アプリケーション技術的セキュリティの検証標準
+- **レベル**: L1（基本）/ L2（標準）/ L3（高度）の3段階
+- **活用**: セキュリティレビュー・ペネトレーションテストの基準
+- **参考**: [OWASP ASVS 4.0](https://owasp.org/www-project-application-security-verification-standard/)
+
+#### 📗 NIST SSDF (Secure Software Development Framework, SP 800-218)
+- **目的**: セキュアSDLC実践プラクティス集
+- **構成**: 4カテゴリ（準備/保護/生成/応答）のプラクティス群
+- **活用**: 開発プロセス・パイプライン設計の指針
+- **参考**: [NIST SP 800-218](https://csrc.nist.gov/publications/detail/sp/800-218/final)
+
+#### 📙 SOC 2 (Trust Services Criteria)
+- **目的**: サービス組織統制の保証報告
+- **原則**: Security / Availability / Processing Integrity / Confidentiality / Privacy
+- **活用**: SaaS監査・顧客保証
+- **参考**: [AICPA Trust Services Criteria](https://www.aicpa.org/interestareas/frc/assuranceadvisoryservices/trustdataintegrity)
+
+#### 📕 ISO/IEC 27001:2022 (ISMS)
+- **目的**: 情報セキュリティマネジメントシステム国際規格
+- **構成**: Annex A統制（組織的/人的/物理的/技術的）の4カテゴリ
+- **活用**: 認証取得・内部統制設計
+- **参考**: [ISO/IEC 27001:2022](https://www.iso.org/standard/27001)
+
+---
+
+## 🔗 追加統制トラック（エンタープライズ拡張）
+
+Level 1-5に加え、エンタープライズ環境で必須となる横断的統制を2つの独立トラックとして定義します。
+
+### Track X: サプライチェーン・CI/CD統制 ❌ **0% 完了**
+
+**目的**: ビルド成果物・依存関係の完全性とCI/CDパイプラインの安全性を保証
+
+#### X-1: 依存関係管理 ❌ **0% 完了**
+* ❌ **SBOM（Software Bill of Materials）生成**
+  - CycloneDX/SPDX形式でのSBOM出力
+  - 全依存パッケージのバージョン・ライセンス情報
+  - ビルド成果物へのSBOM添付
+* ❌ **依存脆弱性スキャン**
+  - GitHub Dependabot / Snyk / Trivy統合
+  - 重大度別の優先度設定（Critical/High/Medium/Low）
+  - 自動PR作成とマージ基準
+* ❌ **脆弱性対応SLA**
+  - Critical: 24時間以内
+  - High: 7日以内
+  - Medium: 30日以内
+  - 例外承認プロセス（リスク受容記録）
+
+#### X-2: ビルド・署名・検証 ❌ **0% 完了**
+* ❌ **成果物署名**
+  - コンテナイメージへのSigstore/Cosign署名
+  - npm/Docker registry署名検証
+  - 改ざん検知機構
+* ❌ **再現可能ビルド（Reproducible Builds）**
+  - ビルド環境のバージョン固定
+  - タイムスタンプ正規化
+  - ビルドハッシュの記録・検証
+
+#### X-3: CI/CDセキュリティ ❌ **0% 完了**
+* ❌ **パイプライン権限分離**
+  - 開発/ステージング/本番環境の承認フロー
+  - GitHub Environments + Required Reviewers
+  - 本番デプロイは2人承認必須
+* ❌ **シークレット管理**
+  - GitHub Secrets / Vault統合
+  - Secrets rotationポリシー（90日）
+  - 平文シークレット検知（git-secrets/TruffleHog）
+* ❌ **Provenance記録**
+  - SLSA Level 2準拠
+  - ビルド出処の暗号学的証明
+  - in-toto attestation
+
+**外部標準対応**:
+- **NIST SSDF**: PO.3, PS.1, PS.2, PW.4, PW.7, RV.2
+- **OWASP ASVS**: V14.2 依存関係
+- **SOC 2**: CC6.6, CC7.2, CC8.1
+- **ISO 27001**: A.8.31, A.8.32, A.5.23（クラウドサービス統制）
+
+---
+
+### Track Y: データ統制（Privacy & Data Lifecycle） ❌ **0% 完了**
+
+**目的**: 個人データ・機微情報のライフサイクル全体での保護と説明責任
+
+#### Y-1: データ分類・識別 ❌ **0% 完了**
+* ❌ **データ分類基準**
+  - **Public**: 公開情報（会社概要等）
+  - **Internal**: 内部情報（業務資料等）
+  - **Confidential**: 機密情報（契約・財務等）
+  - **PII**: 個人識別情報（氏名・メール・電話等）
+  - **Sensitive PII**: 機微個人情報（医療・思想・犯罪歴等）
+* ❌ **スキーマレベルでの分類タグ付け**
+  - Prisma schema annotations (`@pii`, `@sensitive`)
+  - GraphQL schema directives (`@confidential`)
+  - 自動分類スキャン
+* ❌ **データマッピング（Data Flow Diagram）**
+  - PII収集→保存→処理→転送→削除の流れ
+  - サードパーティへのデータ転送記録
+
+#### Y-2: データ保持・削除 ❌ **0% 完了**
+* ❌ **Retention Policy（保存期間ポリシー）**
+  - アクティブユーザー: 無期限
+  - 非アクティブ90日: 警告通知
+  - 非アクティブ180日: 自動アーカイブ
+  - 削除要求: 30日以内に完全削除
+* ❌ **Right to Erasure（削除権）実装**
+  - GDPR Article 17準拠
+  - ユーザー削除リクエスト受付API
+  - 論理削除→物理削除の二段階処理
+  - カスケード削除（関連データ含む）
+* ❌ **バックアップからの削除**
+  - バックアップ保持期間（最大90日）
+  - 削除要求後90日でバックアップからも消去
+  - ポイントインタイム削除の技術的限界を利用規約で明示
+
+#### Y-3: 暗号化・鍵管理 ⚠️ **30% 完了**
+* ✅ **転送時暗号化（Encryption in Transit）**
+  - HTTPS/TLS 1.3
+  - 証明書更新管理
+* ❌ **保管時暗号化（Encryption at Rest）**
+  - データベース透過暗号化（TDE）
+  - アプリケーションレベル暗号化（フィールド単位）
+  - ファイルストレージ暗号化（S3 SSE-KMS等）
+* ❌ **鍵管理（KMS）**
+  - AWS KMS / Google Cloud KMS統合
+  - 鍵のローテーション（年1回）
+  - 鍵アクセス監査ログ
+
+#### Y-4: テナント分離（B2B SaaS） ❌ **0% 完了**
+* ❌ **マルチテナントアーキテクチャ**
+  - Row-level security（Prismaフィルター）
+  - テナントIDの全クエリ強制付与
+  - クロステナントアクセスの防止
+* ❌ **テナント間データ漏洩防止**
+  - PostgreSQL Row-Level Security (RLS)
+  - GraphQL Context filtering
+  - 統合テスト（クロステナント試行）
+
+#### Y-5: 同意管理・プライバシー通知 ❌ **0% 完了**
+* ❌ **Cookie同意バナー（GDPR/ePrivacy）**
+  - 必須Cookie vs オプショナルCookie
+  - 拒否可能な設計
+  - 同意記録の保存（180日）
+* ❌ **プライバシーポリシー**
+  - 収集データの明示
+  - 利用目的・第三者提供
+  - 連絡先（DPO: Data Protection Officer）
+* ❌ **Data Subject Access Request (DSAR)**
+  - ユーザーが自身のデータをエクスポート可能
+  - JSON/CSV形式でのダウンロード
+  - 30日以内の応答義務
+
+**外部標準対応**:
+- **GDPR**: Article 5（原則）, 6（合法性）, 7（同意）, 13-14（通知）, 15（アクセス権）, 17（削除権）, 32（セキュリティ）
+- **OWASP ASVS**: V8.1-8.3（データ保護）, V9.1（通信）, V10.2（暗号化）
+- **SOC 2**: P1.1（通知）, P3.1（収集）, P3.2（保持・削除）, P4.2（品質）, P6.1-6.7（開示・通知）
+- **ISO 27001**: A.5.34（プライバシー・PII保護）, A.8.10（情報削除）, A.8.11（データマスキング）, A.8.24（暗号化）
+- **NIST Privacy Framework**: ID-IM, ID-DE, GV-PO, CM-PO
+
+---
+
+## 🎯 エンタープライズへの次の一手（優先順位付け実装ロードマップ）
+
+Level 5とTrack X/Yの実装を効率的に進めるため、**監査・審査で評価されやすい順**に優先順位を設定します。
+
+### 優先度: 🔥 最高 | ⚡ 高 | 📌 中 | 📋 低
+
+| 優先度 | 施策 | 理由 | 実装コスト | ビジネスインパクト | 開始タイミング |
+|--------|------|------|------------|-------------------|---------------|
+| 🔥 **1位** | **監査ログ（Level 5）**<br>• 操作ログ（誰が・いつ・何を）<br>• 管理者操作ログ<br>• 認可判断ログ | **最も評価される**<br>• SOC 2必須統制<br>• ISO 27001 A.8.15必須<br>• インシデント調査の基盤 | 中（2-3週間）<br>• AuditLog entity<br>• Decorator実装<br>• ログ保持基盤 | **極大**<br>• 監査対応<br>• コンプライアンス証明<br>• セキュリティ事後分析 | **即着手** |
+| ⚡ **2位** | **データ分類とRetention（Track Y-1, Y-2）**<br>• 方針文書化<br>• Prisma @piiアノテーション<br>• 削除API実装 | **GDPR Article 17必須**<br>• プライバシー統制の中核<br>• 「削除できるか？」は第一質問 | 中（2-3週間）<br>• ポリシー策定<br>• スキーマ修正<br>• 削除ロジック | **大**<br>• EU顧客対応<br>• プライバシー訴訟リスク低減 | **監査ログの次** |
+| ⚡ **3位** | **依存脆弱性のSLA運用（Track X-1）**<br>• Dependabot/Snyk統合<br>• 重大度別の修正期限<br>• 例外承認プロセス | **「検知より運用」が評価される**<br>• NIST SSDF RV.2<br>• 実効性ある脆弱性管理の証明 | 低（1週間）<br>• 既存ツール活用<br>• SLA文書化<br>• 例外管理フロー | **大**<br>• セキュリティ成熟度の証明<br>• サプライチェーン統制 | **並行可能** |
+| 📌 **4位** | **DR/RTO/RPO文書化 + 復旧訓練**<br>• 障害復旧計画<br>• 年1回の復旧訓練<br>• 手順書整備 | **可用性統制の本丸**<br>• SOC 2 A1.2<br>• エンタープライズは「復旧可能性」を見る | 低（文書化1週間）<br>高（訓練実施）<br>• RTO/RPO定義<br>• Runbook作成 | **中**<br>• 高可用性SLA<br>• 大口顧客向け保証 | **Q2に計画** |
+| 📌 **5位** | **Access Review（四半期）（Track Y拡張）**<br>• 権限棚卸し<br>• 不要権限の剥奪<br>• 記録保持 | **RBACの完成形**<br>• SOC 2 CC6.2<br>• ISO 27001 A.5.18必須<br>• 特権アクセス管理の証明 | 中（2週間）<br>• Review画面実装<br>• 通知機能<br>• プロセス文書化 | **中**<br>• 内部統制監査<br>• 最小権限原則の実証 | **Q2-Q3** |
+| 📋 **6位** | **SBOM生成（Track X-1）**<br>• CycloneDX形式<br>• ビルド時自動生成 | **サプライチェーン透明性**<br>• 米国政府調達（EO 14028）必須<br>• 将来的な業界標準 | 低（2-3日）<br>• `@cyclonedx/cdxgen`<br>• CI統合 | **小（現時点）**<br>• 先進的な取り組みとしてPR | **Q3-Q4** |
+| 📋 **7位** | **保管時暗号化（Track Y-3）**<br>• DB TDE<br>• フィールド暗号化 | **技術的統制**<br>• SOC 2 CC6.7<br>• データ侵害時の影響軽減 | 高（3-4週間）<br>• KMS統合<br>• マイグレーション<br>• 性能テスト | **中**<br>• 金融・医療業界必須<br>• データ侵害保険 | **Q3-Q4** |
+| 📋 **8位** | **テナント分離（Track Y-4）**<br>• Row-Level Security<br>• クロステナント防止 | **B2B SaaSの前提**<br>• 重大なデータ漏洩リスク | 高（4-6週間）<br>• アーキテクチャ変更<br>• 全クエリ修正<br>• 統合テスト | **極大（B2B時）**<br>• マルチテナント化の基盤 | **B2B展開時** |
+
+### 実装フェーズ計画（3ヶ月スプリント案）
+
+#### 📅 Phase 1: 監査対応の基盤（Week 1-4）
+- **Week 1-2**: 監査ログ実装（操作ログ + 管理者操作）
+  - `AuditLog` entity作成
+  - `@AuditLog()` decorator実装
+  - ログ保存・検索API
+- **Week 3**: データ分類方針文書化
+  - Data Classification Policy
+  - Retention Policy
+  - Privacy Impact Assessment (PIA)
+- **Week 4**: 依存脆弱性SLA設定
+  - Dependabot設定強化
+  - 重大度別SLA文書化
+  - 例外承認ワークフロー
+
+**成果物**: SOC 2 CC6.8, ISO 27001 A.8.15準拠、監査証跡基盤
+
+#### 📅 Phase 2: プライバシー統制（Week 5-8）
+- **Week 5-6**: データ削除機能実装
+  - 削除リクエストAPI
+  - カスケード削除ロジック
+  - 論理削除→物理削除の自動化
+- **Week 7**: プライバシーポリシー・同意管理
+  - Cookie同意バナー
+  - プライバシー通知
+  - DSAR手順書
+- **Week 8**: DR/RTO/RPO文書化
+  - 障害復旧計画
+  - Runbook作成
+  - バックアップ検証
+
+**成果物**: GDPR Article 13-17準拠、削除権実装
+
+#### 📅 Phase 3: 運用統制の成熟（Week 9-12）
+- **Week 9-10**: Access Review実装
+  - 権限棚卸し画面
+  - 四半期レビュープロセス
+  - 記録保持
+- **Week 11**: SBOM生成統合
+  - CycloneDX導入
+  - CI/CDパイプライン統合
+- **Week 12**: 復旧訓練実施
+  - DR訓練シナリオ
+  - 訓練実施・記録
+  - 改善事項の文書化
+
+**成果物**: SOC 2 Type II対応、ISO 27001認証準備完了
+
+---
+
+### 📊 投資対効果（ROI）の考え方
+
+| 指標 | 監査ログ | データ削除 | 脆弱性SLA | 暗号化 | テナント分離 |
+|------|---------|-----------|----------|--------|------------|
+| **実装コスト** | 中 | 中 | 低 | 高 | 高 |
+| **監査評価** | 極大 | 大 | 大 | 中 | 極大（B2B時） |
+| **コンプライアンス** | 必須 | 必須 | 推奨 | 推奨 | 条件付き必須 |
+| **差別化** | 並 | 並 | 並 | 並 | 大 |
+| **保守負担** | 低 | 低 | 低 | 中 | 高 |
+| **優先度判定** | ✅ 最優先 | ✅ 最優先 | ✅ 高 | ⚠️ 中 | ⚠️ B2B時 |
+
+### 🏁 エンタープライズ対応の完成形
+
+上記を全て実装すると、以下の対外証明が可能になります：
+
+✅ **SOC 2 Type II報告書** 発行可能  
+✅ **ISO/IEC 27001** 認証取得準備完了  
+✅ **GDPR Article 30** 処理活動記録（RoPA）整備済み  
+✅ **NIST SSDF** 全プラクティス実装済み  
+✅ **OWASP ASVS Level 2** 検証基準達成  
+✅ **FedRAMP/StateRAMP** （米国政府調達）基準充足  
+
+**結果**: エンタープライズ顧客への説明責任を完全に果たし、監査・審査を短縮できる体制が完成します。
+
+---
+
+## 📄 関連ドキュメント
+
+### 品質・セキュリティ
+- [品質成熟度と外部標準マッピング](#-外部標準マッピングエンタープライズ対応) - 本ドキュメント内
+- [CSRF保護実装](/api/docs/CSRF_PROTECTION.md) - Double Submit Cookie実装詳細
+- [Sentry統合](/web/docs/SENTRY_SETUP.md) - エラートラッキング設定
+
+### 現状分析・ギャップ
+- **[📊 データライフサイクル & 可用性の現状分析](/docs/DATA_LIFECYCLE_AND_AVAILABILITY_STATUS.md)** ⭐ **必読**
+  - データ分類・Retention・削除の実装状況
+  - RTO/RPO・DR・インシデント対応の現状
+  - エンタープライズ要件とのギャップ分析
+  - 優先順位付け実装ロードマップ
+
+### テスト戦略
+- [テスト戦略](/docs/testing-strategy.md) - 統合テスト全体設計
+- [テストガイドライン](/docs/testing-guidelines.md) - テスト実装規約
 
 ---
 
@@ -662,7 +954,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ---
 
-**最終更新日**: 2026年2月22日  
+**最終更新日**: 2026年2月23日  
 **プロジェクトバージョン**: 0.1.0  
-**コード品質評価**: 97/100点（Sランク）
+**コード品質評価**: 97/100点（Sランク）  
+**エンタープライズ対応**: Phase 1準備完了（外部標準マッピング・統制トラック設計）
 
