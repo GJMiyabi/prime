@@ -423,7 +423,6 @@ describe('Person create → get → delete (e2e)', () => {
 describe('Extended E2E Scenarios', () => {
   let app: INestApplication;
   let adminToken: string;
-  let teacherToken: string;
   let studentToken: string;
   const createdPersonIds: string[] = [];
 
@@ -437,7 +436,6 @@ describe('Extended E2E Scenarios', () => {
 
     // Get tokens for all user types
     adminToken = await loginUser(app, 'admin', 'admin123');
-    teacherToken = await loginUser(app, 'teacher', 'teacher123');
     studentToken = await loginUser(app, 'student', 'student123');
   });
 
@@ -479,10 +477,10 @@ describe('Extended E2E Scenarios', () => {
 
       // GraphQL validation errors return HTTP 400
       expect(response.status).toBe(400);
-      const body = response.body as any;
+      const body = response.body as GraphQLResponse<unknown>;
       expect(body.errors).toBeDefined();
-      expect(body.errors.length).toBeGreaterThan(0);
-      expect(body.errors[0].message).toContain('nonExistentQuery');
+      expect(body.errors?.length).toBeGreaterThan(0);
+      expect(body.errors?.[0]?.message).toContain('nonExistentQuery');
     });
   });
 
@@ -499,7 +497,7 @@ describe('Extended E2E Scenarios', () => {
       });
 
       expect(response.status).toBe(200);
-      const body = response.body as any;
+      const body = response.body as GraphQLResponse<{ deletePerson: boolean | null }>;
       // Should have an error (either auth error or not found)
       expect(body.errors || body.data?.deletePerson === null).toBeTruthy();
     });
@@ -576,7 +574,7 @@ describe('Extended E2E Scenarios', () => {
       );
 
       expect(response.status).toBe(200);
-      const body = response.body as any;
+      const body = response.body as GraphQLResponse<{ person: { id: string; name: string } | null }>;
       expect(body.data?.person).toBeNull();
     });
 
@@ -598,7 +596,7 @@ describe('Extended E2E Scenarios', () => {
       );
 
       expect(response.status).toBe(200);
-      const body = response.body as any;
+      const body = response.body as GraphQLResponse<{ person: { id: string; name: string } | null }>;
       // Should either return null or error
       expect(body.data?.person === null || body.errors).toBeTruthy();
     });
@@ -618,7 +616,7 @@ describe('Extended E2E Scenarios', () => {
       );
 
       expect(response.status).toBe(200);
-      const body = response.body as any;
+      const body = response.body as GraphQLResponse<{ deletePerson: boolean }>;
       // Should fail (return false or throw error)
       expect(body.data?.deletePerson === false || body.errors).toBeTruthy();
     });
@@ -647,10 +645,10 @@ describe('Extended E2E Scenarios', () => {
       `;
 
       const introspectRes = await gqlRequest(app, INTROSPECT);
-      const introspectBody = introspectRes.body as any;
+      const introspectBody = introspectRes.body as GraphQLResponse<{ __type: { fields: Array<{ name: string }> } }>;
       const mutationFields = introspectBody.data?.__type?.fields || [];
       const hasUpdateMutation = mutationFields.some(
-        (f: any) => f.name === 'updatePerson',
+        (f) => f.name === 'updatePerson',
       );
 
       if (hasUpdateMutation) {
@@ -671,7 +669,7 @@ describe('Extended E2E Scenarios', () => {
         );
 
         expect(response.status).toBe(200);
-        const body = response.body as any;
+        const body = response.body as GraphQLResponse<{ updatePerson: { id: string; name: string } }>;
         
         if (!body.errors) {
           expect(body.data?.updatePerson?.name).toBe('Updated Name');
@@ -751,10 +749,10 @@ describe('Extended E2E Scenarios', () => {
       `;
 
       const introspectRes = await gqlRequest(app, INTROSPECT);
-      const introspectBody = introspectRes.body as any;
+      const introspectBody = introspectRes.body as GraphQLResponse<{ __type: { fields: Array<{ name: string }> } }>;
       const queryFields = introspectBody.data?.__type?.fields || [];
       const hasListQuery = queryFields.some(
-        (f: any) => f.name === 'persons' || f.name === 'personList',
+        (f) => f.name === 'persons' || f.name === 'personList',
       );
 
       if (hasListQuery) {
@@ -770,7 +768,7 @@ describe('Extended E2E Scenarios', () => {
         const response = await gqlRequest(app, LIST_QUERY, {}, adminToken);
         expect(response.status).toBe(200);
         
-        const body = response.body as any;
+        const body = response.body as GraphQLResponse<{ persons: Array<{ id: string; name: string }> }>;
         if (!body.errors) {
           expect(Array.isArray(body.data?.persons)).toBe(true);
           expect(body.data?.persons.length).toBeGreaterThanOrEqual(2);
