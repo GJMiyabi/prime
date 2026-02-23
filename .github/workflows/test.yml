@@ -97,11 +97,14 @@ jobs:
           NODE_ENV: test
         run: npm run test:cov
 
-      - name: Reset database for E2E tests
+      - name: Prepare database for E2E tests
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          NODE_ENV: test
         run: |
-          npx prisma migrate reset --force --skip-generate --schema=src/frameworks/prisma/schema.prisma
+          echo "Cleaning up test database..."
+          npx prisma db push --force-reset --skip-generate --schema=src/frameworks/prisma/schema.prisma
+          echo "Seeding test data..."
           npx prisma db seed --schema=src/frameworks/prisma/schema.prisma
 
       - name: Run E2E tests

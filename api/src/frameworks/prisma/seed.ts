@@ -5,6 +5,21 @@ import * as argon2 from 'argon2';
 const prisma = new PrismaClient();
 
 async function main(prismaClient: PrismaClient = prisma) {
+  // テスト環境では既存データをクリーンアップ（冪等性のため）
+  if (process.env.NODE_ENV === 'test') {
+    console.log('🧹 テスト環境: 既存データをクリーンアップ中...');
+    
+    // 外部キー制約の順序を考慮して削除
+    await prismaClient.account.deleteMany({});
+    await prismaClient.principal.deleteMany({});
+    await prismaClient.contactAddress.deleteMany({});
+    await prismaClient.person.deleteMany({});
+    await prismaClient.facility.deleteMany({});
+    await prismaClient.organization.deleteMany({});
+    
+    console.log('✅ クリーンアップ完了');
+  }
+
   const org = await prismaClient.organization.create({
     data: {
       name: 'サンプル組織',
