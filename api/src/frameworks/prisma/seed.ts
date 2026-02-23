@@ -4,15 +4,15 @@ import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const org = await prisma.organization.create({
+async function main(prismaClient: PrismaClient = prisma) {
+  const org = await prismaClient.organization.create({
     data: {
       name: 'サンプル組織',
       IDNumber: 'ORG-001',
     },
   });
 
-  const facility = await prisma.facility.create({
+  const facility = await prismaClient.facility.create({
     data: {
       name: '第一施設',
       IDNumber: 'FAC-001',
@@ -20,7 +20,7 @@ async function main() {
     },
   });
 
-  const person = await prisma.person.create({
+  const person = await prismaClient.person.create({
     data: {
       name: '田中太郎',
       organizationId: org.id,
@@ -30,7 +30,7 @@ async function main() {
     },
   });
 
-  await prisma.contactAddress.create({
+  await prismaClient.contactAddress.create({
     data: {
       type: 'EMAIL',
       value: 'tanaka@example.com',
@@ -44,14 +44,14 @@ async function main() {
   console.log('🔐 アカウントデータを作成中...');
 
   // 管理者用アカウント
-  const adminPerson = await prisma.person.create({
+  const adminPerson = await prismaClient.person.create({
     data: {
       name: '管理者',
       organizationId: org.id,
     },
   });
 
-  const adminPrincipal = await prisma.principal.create({
+  const adminPrincipal = await prismaClient.principal.create({
     data: {
       personId: adminPerson.id,
       kind: 'ADMIN',
@@ -59,7 +59,7 @@ async function main() {
   });
 
   const adminPasswordHash = await argon2.hash('admin123');
-  await prisma.account.create({
+  await prismaClient.account.create({
     data: {
       principalId: adminPrincipal.id,
       username: 'admin',
@@ -70,7 +70,7 @@ async function main() {
   });
 
   // 教師用アカウント
-  const teacherPerson = await prisma.person.create({
+  const teacherPerson = await prismaClient.person.create({
     data: {
       name: '山田花子',
       organizationId: org.id,
@@ -80,7 +80,7 @@ async function main() {
     },
   });
 
-  const teacherPrincipal = await prisma.principal.create({
+  const teacherPrincipal = await prismaClient.principal.create({
     data: {
       personId: teacherPerson.id,
       kind: 'TEACHER',
@@ -88,7 +88,7 @@ async function main() {
   });
 
   const teacherPasswordHash = await argon2.hash('teacher123');
-  await prisma.account.create({
+  await prismaClient.account.create({
     data: {
       principalId: teacherPrincipal.id,
       username: 'teacher',
@@ -99,7 +99,7 @@ async function main() {
   });
 
   // 学生用アカウント
-  const studentPerson = await prisma.person.create({
+  const studentPerson = await prismaClient.person.create({
     data: {
       name: '佐藤次郎',
       organizationId: org.id,
@@ -109,7 +109,7 @@ async function main() {
     },
   });
 
-  const studentPrincipal = await prisma.principal.create({
+  const studentPrincipal = await prismaClient.principal.create({
     data: {
       personId: studentPerson.id,
       kind: 'STUDENT',
@@ -117,7 +117,7 @@ async function main() {
   });
 
   const studentPasswordHash = await argon2.hash('student123');
-  await prisma.account.create({
+  await prismaClient.account.create({
     data: {
       principalId: studentPrincipal.id,
       username: 'student',
@@ -134,11 +134,17 @@ async function main() {
   console.log('  学生: username=student, password=student123');
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => {
-    prisma.$disconnect().catch((e) => console.error(e));
-  });
+// テスト用にmain関数をエクスポート
+export { main };
+
+// スクリプトとして実行された場合のみmainを実行
+if (require.main === module) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => {
+      prisma.$disconnect().catch((e) => console.error(e));
+    });
+}
