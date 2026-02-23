@@ -219,6 +219,80 @@ export class GetPersonUseCase {
 
 ---
 
+## 🛡️ セキュリティ & 品質レベル達成状況
+
+本プロジェクトは段階的な品質向上アプローチを採用し、以下のレベルを達成しています。
+
+### Level 1: 基本品質 ✅ **100% 完了**
+* ✅ **型安全性（TypeScript strict mode）**
+  - `tsconfig.json`で`strict: true`を設定
+  - 全ファイルで厳格な型チェックを実施
+* ✅ **バリデーション（React Hook Form + domain validation）**
+  - フォーム入力の検証を実装
+  - ドメイン層でのビジネスルール検証
+* ✅ **Branded Types（Id<T>, ValueObject）**
+  - 型レベルでのID型の区別（`PersonId`, `AccountId`等）
+  - Value Objectパターンによる値の不変性保証
+* ✅ **基本的なエラーハンドリング（Error Boundary）**
+  - React Error Boundaryによるエラーキャッチ
+  - Sentryへの自動エラー送信
+
+### Level 2: セキュリティ基礎 ✅ **100% 完了**
+* ✅ **JWT httpOnly Cookie（XSS対策）**
+  - `Set-Cookie: HttpOnly`でブラウザJSからアクセス不可
+  - XSS攻撃によるトークン窃取を防止
+* ✅ **CSRF対策（Double Submit Cookie pattern）**
+  - `CsrfGuard`による二重送信Cookie検証
+  - GraphQL Mutationに対してCSRFトークンをチェック
+  - `@SkipCsrf()`デコレーターで柔軟な制御
+* ✅ **RBAC（RolesGuard + @Roles デコレータ、4役割対応）**
+  - `GqlAuthGuard` + `RolesGuard`による二段階認証・認可
+  - 4つの役割: `ADMIN`, `TEACHER`, `STUDENT`, `STAKEHOLDER`
+  - `@Roles(PrincipalKind.ADMIN)`デコレーターで宣言的な権限制御
+* ✅ **入力サニタイゼーション強化（SanitizationPipe + DOMPurify）**
+  - NestJSの`SanitizationPipe`による入力の自動サニタイズ
+  - フロントエンドでDOMPurifyによるXSS対策
+
+### Level 3: 信頼性・テスト ⚠️ **70% 完了**
+* ✅ **Unit Test (JEST)**: 完了
+  - Backend: 862テスト実施、1スキップ
+  - CSRF Guard: 19テスト追加済み
+  - JWT Strategy: 認証フロー全体をカバー
+* ✅ **E2E Test**: 完了
+  - 12テスト実施（認証フロー + Person CRUD操作）
+  - Docker環境でのデータベース連携テスト
+* ✅ **テストカバレッジ 80%以上**
+  - Backend/Frontend両方で80%以上を維持
+  - GitHub Actionsで自動カバレッジチェック
+* ❌ **Integration Test**: 未実装
+
+### Level 4: 運用品質 ✅ **100% 完了**
+* ✅ **Structured Logging（Logger実装済み）**
+  - NestJSのLoggerを全モジュールで使用
+  - ログレベル（error, warn, log, debug）の適切な使い分け
+* ✅ **Sentry（エラートラッキング）**
+  - Backend: `@sentry/nestjs`統合
+  - Frontend: `@sentry/nextjs`統合
+  - エラーの自動キャプチャとスタックトレース送信
+* ✅ **パフォーマンス監視（Core Web Vitals）**
+  - Next.jsのパフォーマンス計測機能を活用
+  - Sentryでパフォーマンスメトリクス収集
+* ✅ **アラート設定**
+  - Sentryでエラー発生時の通知設定
+* ✅ **ヘルスチェックエンドポイント**
+  - `/health`エンドポイントでサービス状態を監視
+  - データベース接続状態の確認
+
+### Level 5: コンプライアンス ❌ **0% 完了**
+* ❌ **監査ログ（誰が・いつ・何を）**: 未実装
+* ⚠️ **データ暗号化**: 部分的
+  - in transit (HTTPS): 想定済み
+  - at rest: 未実装
+* ❌ **GDPR/個人情報保護対応**: 未実装
+* ❌ **SOC 2 / ISO 27001準拠**: 未実装
+
+---
+
 ## 🏗️ アーキテクチャ概要
 
 ### ディレクトリ構造
