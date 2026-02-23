@@ -44,6 +44,9 @@ describe('JwtStrategy', () => {
       expect(result).toEqual({
         sub: 'principal-123',
         username: 'testuser',
+        email: undefined,
+        role: undefined,
+        accountId: undefined,
       });
     });
 
@@ -60,6 +63,9 @@ describe('JwtStrategy', () => {
       expect(result).toEqual({
         sub: 'principal-456',
         username: undefined,
+        email: undefined,
+        role: undefined,
+        accountId: undefined,
       });
     });
 
@@ -98,6 +104,7 @@ describe('JwtStrategy', () => {
         username: 'student',
         email: 'student@example.com',
         role: 'STUDENT',
+        accountId: 'account-123',
       } as any;
 
       // Act
@@ -106,7 +113,9 @@ describe('JwtStrategy', () => {
       // Assert
       expect(result.sub).toBe('principal-202');
       expect(result.username).toBe('student');
-      // 追加フィールドは返却されない（明示的に選択されたフィールドのみ）
+      expect(result.email).toBe('student@example.com');
+      expect(result.role).toBe('STUDENT');
+      expect(result.accountId).toBe('account-123');
     });
 
     it('should return consistent structure', () => {
@@ -125,8 +134,20 @@ describe('JwtStrategy', () => {
       const result2 = strategy.validate(payload2);
 
       // Assert
-      expect(Object.keys(result1)).toEqual(['sub', 'username']);
-      expect(Object.keys(result2)).toEqual(['sub', 'username']);
+      expect(Object.keys(result1)).toEqual([
+        'sub',
+        'username',
+        'email',
+        'role',
+        'accountId',
+      ]);
+      expect(Object.keys(result2)).toEqual([
+        'sub',
+        'username',
+        'email',
+        'role',
+        'accountId',
+      ]);
     });
 
     it('should handle empty username', () => {

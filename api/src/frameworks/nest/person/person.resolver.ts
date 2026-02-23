@@ -18,16 +18,8 @@ import { GraphQLResolveInfo } from 'graphql';
 import { PrincipalKind } from 'src/domains/type/principal-kind';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { GqlAuthGuard } from '../auth/guards/gql-auth.guard';
 import { SanitizationPipe } from '../shared/pipes/sanitization.pipe';
-// import { GqlAuthGuard } from '../auth/guards/gql-auth.guard'; // 認証ガードを使用する場合
-// import { GraphContext } from '../shared/graphql/graphql.context'; // 認証コンテキストを使用する場合
-
-// 認証が必要なリゾルバーの使用例:
-// @UseGuards(GqlAuthGuard)
-// async someAuthenticatedMethod(@Context() context: GraphContext) {
-//   const principalId = context.principalId;
-//   // 認証されたユーザーのプリンシパルIDを使用した処理
-// }
 
 import graphqlFields from 'graphql-fields';
 
@@ -74,7 +66,7 @@ function hasPath(obj: unknown, path: string): boolean {
 }
 
 @Resolver()
-@UseGuards(RolesGuard)
+@UseGuards(GqlAuthGuard, RolesGuard)
 export class PersonMutationResolver {
   constructor(private readonly personInputport: IPersonInputPort) {}
 

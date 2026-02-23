@@ -5,6 +5,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 type JwtPayload = {
   sub: string; // principalId を入れる
   username?: string; // 任意
+  email?: string;
+  role?: string; // PrincipalKind
+  accountId?: string;
 };
 
 @Injectable()
@@ -19,6 +22,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   validate(payload: JwtPayload) {
     // ここで返したオブジェクトが req.user / GQL context.user に入る
-    return { sub: payload.sub, username: payload.username };
+    // RolesGuardがroleを使用するため、ペイロードの全情報を返す
+    return {
+      sub: payload.sub,
+      username: payload.username,
+      email: payload.email,
+      role: payload.role,
+      accountId: payload.accountId,
+    };
   }
 }
