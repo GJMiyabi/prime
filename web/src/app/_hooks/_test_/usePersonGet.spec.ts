@@ -1,6 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { usePersonGet } from '../person/usePersonGet';
 import * as usePersonUseCasesModule from '../factories/usePersonUseCases';
+import { PersonIncludeOptions } from '../../_repositories/person.repository';
+import { GetPersonUseCase } from '../../_usecases/person/get-person.usecase';
+import { CreatePersonUseCase } from '../../_usecases/person/create-person.usecase';
 
 // Mock usePersonUseCases
 const mockExecute = jest.fn();
@@ -13,13 +16,17 @@ describe('usePersonGet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    const mockGetPersonUseCase = {
+      execute: mockExecute,
+    } as unknown as GetPersonUseCase;
+
+    const mockCreatePersonUseCase = {
+      execute: jest.fn(),
+    } as unknown as CreatePersonUseCase;
+
     jest.mocked(usePersonUseCasesModule.usePersonUseCases).mockReturnValue({
-      get: {
-        execute: mockExecute,
-      },
-      create: {
-        execute: jest.fn(),
-      },
+      get: mockGetPersonUseCase,
+      create: mockCreatePersonUseCase,
     });
   });
 
@@ -377,7 +384,7 @@ describe('usePersonGet', () => {
       const { rerender } = renderHook(
         ({ include }) => usePersonGet('person-1', include),
         {
-          initialProps: { include: undefined },
+          initialProps: { include: undefined as PersonIncludeOptions | undefined },
         }
       );
 

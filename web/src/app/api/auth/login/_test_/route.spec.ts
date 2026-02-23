@@ -69,11 +69,6 @@ describe('POST /api/auth/login', () => {
         json: jest.fn().mockResolvedValue(mockLoginResponse),
       } as unknown as Response);
 
-      const mockResp = mockNextResponse(200, {
-        success: true,
-        user: mockLoginResponse.data.login.user,
-      });
-
       const request = mockRequest({
         username: 'testuser',
         password: 'password123',

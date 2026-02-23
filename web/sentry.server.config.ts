@@ -18,7 +18,7 @@ if (CONFIG.SENTRY.ENABLED && CONFIG.SENTRY.DSN) {
     tracesSampleRate: CONFIG.IS_PRODUCTION ? 0.1 : 1.0,
 
     // エラーのフィルタリング
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) { // eslint-disable-line @typescript-eslint/no-unused-vars
       // 開発環境ではSentryに送信しない（ローカルで確認）
       if (CONFIG.IS_DEVELOPMENT) {
         console.warn("[Sentry] 開発環境のためイベントは送信されません:", event);

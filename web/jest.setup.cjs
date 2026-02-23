@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Learn more: https://github.com/testing-library/jest-dom
 require('@testing-library/jest-dom')
 
