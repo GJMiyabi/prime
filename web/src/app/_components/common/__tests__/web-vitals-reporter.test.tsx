@@ -4,13 +4,12 @@
 
 import { render } from '@testing-library/react';
 import { WebVitalsReporter } from '../web-vitals-reporter';
+import { useReportWebVitals } from 'next/web-vitals';
 
 // next/web-vitalsをモック
 jest.mock('next/web-vitals', () => ({
   useReportWebVitals: jest.fn(),
 }));
-
-const { useReportWebVitals } = require('next/web-vitals');
 
 describe('WebVitalsReporter', () => {
   beforeEach(() => {

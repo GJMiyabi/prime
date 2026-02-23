@@ -323,7 +323,7 @@ describe('PersonCreateForm', () => {
             ref: jest.fn(),
           })),
           formState: { errors: {} },
-          handleSubmit: jest.fn((fn) => mockOnSubmit),
+          handleSubmit: jest.fn(() => mockOnSubmit),
         } as unknown as UseFormReturn<PersonCreateFormData>,
         onSubmit: mockOnSubmit,
         isSubmitting: false,
