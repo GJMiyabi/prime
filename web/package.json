@@ -11,6 +11,10 @@
     "test": "jest",
     "test:ui": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:coverage:html": "jest --coverage --coverageReporters=html",
+    "test:coverage:text": "jest --coverage --coverageReporters=text",
+    "test:coverage:lcov": "jest --coverage --coverageReporters=lcov",
+    "test:coverage:open": "jest --coverage --coverageReporters=html && open coverage/index.html",
     "test:watch": "jest --watch",
     "codegen": "graphql-codegen --config codegen.ts && prettier -w 'src/__generated__/**/*.*'"
   },

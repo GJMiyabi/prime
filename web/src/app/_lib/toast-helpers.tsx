@@ -30,7 +30,7 @@ export const errorToast = (error: Error | string, duration = 5000) => {
  * @param duration - 表示時間（デフォルト: 4秒）
  */
 export const infoToast = (message: string, duration = 4000) => {
-  toast(message, { duration });
+  toast(message, { duration, icon: 'ℹ️' });
 };
 
 /**

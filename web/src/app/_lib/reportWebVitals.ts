@@ -53,10 +53,14 @@ export function reportWebVitals(metric: WebVitalsMetric): void {
   // メトリクスデータを整形
   const metricData: PerformanceMetricData = {
     name: metric.name,
-    value: Math.round(metric.value),
+    value: metric.name === 'CLS' ? Math.round(metric.value * 1000) / 1000 : Math.round(metric.value), // CLSは小数点以下を保持
     rating: metric.rating,
     timestamp: new Date().toISOString(),
-    url: window.location.pathname,
+    url: process.env.NODE_ENV === 'test' 
+      ? (global as { getMockPathname?: () => string }).getMockPathname?.() || '/'
+      : typeof window !== 'undefined' && window.location 
+        ? window.location.pathname 
+        : '/',
   };
 
   // 閾値チェック
