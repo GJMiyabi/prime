@@ -1,8 +1,9 @@
-import { Principal as Prisma } from '@prisma/client';
+import { Principal as Prisma, Account as PrismaAccount } from '@prisma/client';
 import { Principal } from 'src/domains/entities/principal';
 import { PrincipalKind as Kind } from '@prisma/client';
 import { PrincipalKind } from 'src/domains/type/principal-kind';
 import { Id } from 'src/domains/value-object/id';
+import { Account } from 'src/domains/entities/account';
 
 import { PrismaClientSingleton } from 'src/interface-adapters/shared/prisma-client';
 import {
@@ -23,11 +24,25 @@ function mapPrismaKind(k: Kind): PrincipalKind {
   }
 }
 
-export function prismaToPrincipal(p: Prisma) {
+function prismaToAccount(a: PrismaAccount): Account {
+  return new Account({
+    id: new Id(a.id),
+    username: a.username,
+    password: a.password,
+    email: a.email,
+    isActive: a.isActive,
+    principalId: new Id(a.principalId),
+  });
+}
+
+export function prismaToPrincipal(
+  p: Prisma & { account?: PrismaAccount | null },
+) {
   return new Principal({
     id: new Id(p.id),
     kind: mapPrismaKind(p.kind),
     personId: new Id(p.personId),
+    account: p.account ? prismaToAccount(p.account) : undefined,
   });
 }
 

@@ -68,7 +68,13 @@ export async function gqlRequest(
 
     const response = await req.send({ query, variables });
 
-    // Always expect 200 for GraphQL endpoint, errors are in response body
+    // For malformed queries (HTTP 400), validation errors (HTTP 400), return the response
+    // to allow tests to check error responses
+    if (response.status === 400) {
+      return response;
+    }
+
+    // For other non-200 status codes, throw error
     if (response.status !== 200) {
       throw new Error(`HTTP ${response.status}: ${response.text}`);
     }
