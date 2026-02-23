@@ -193,6 +193,7 @@ describe('Authentication (e2e)', () => {
 // --- Person create → get → delete e2e tests ---
 describe('Person create → get → delete (e2e)', () => {
   let app: INestApplication;
+  let adminToken: string;
   const createdPersonIds: string[] = [];
 
   beforeAll(async () => {
@@ -202,13 +203,16 @@ describe('Person create → get → delete (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    // Get admin token for authenticated operations
+    adminToken = await loginUser(app, 'admin', 'admin123');
   });
 
   afterEach(async () => {
     // Clean up any remaining test data
     for (const personId of createdPersonIds) {
       try {
-        await deleteTestPerson(app, personId);
+        await deleteTestPerson(app, personId, adminToken);
       } catch (error) {
         // Ignore errors during cleanup (person might already be deleted)
         console.warn(`Failed to cleanup person ${personId}:`, error);
@@ -222,14 +226,12 @@ describe('Person create → get → delete (e2e)', () => {
   });
 
   it('creates a Person, fetches it, then deletes it and verifies null', async () => {
-    const token: string | undefined = undefined;
-
     // 1) Create person using helper function
     const created = await createTestPerson(
       app,
       'Alice E2E',
       undefined,
-      token,
+      adminToken,
       createdPersonIds,
     );
     expect(created.name).toBe('Alice E2E');
@@ -238,16 +240,16 @@ describe('Person create → get → delete (e2e)', () => {
     const personId = created.id;
 
     // 2) Query back by id
-    const person = await findTestPerson(app, personId, token);
+    const person = await findTestPerson(app, personId, adminToken);
     expect(person).toBeDefined();
     expect(person?.id).toBe(personId);
 
     // 3) Delete
-    const deleted = await deleteTestPerson(app, personId, token);
+    const deleted = await deleteTestPerson(app, personId, adminToken);
     expect(deleted).toBe(true);
 
     // 4) Verify null
-    const personAfterDelete = await findTestPerson(app, personId, token);
+    const personAfterDelete = await findTestPerson(app, personId, adminToken);
     expect(personAfterDelete).toBeNull();
 
     // Remove from tracking since we manually deleted
@@ -263,7 +265,7 @@ describe('Person create → get → delete (e2e)', () => {
       app,
       'Bob E2E',
       undefined,
-      undefined,
+      adminToken,
       createdPersonIds,
     );
     const id = created.id;
@@ -305,7 +307,7 @@ describe('Person create → get → delete (e2e)', () => {
 
     const QUERY = gql`query ($id: ID!) { person(id: $id) { id name ${extraSelections.join(' ')} } }`;
 
-    const res = await gqlRequest(app, QUERY, { id });
+    const res = await gqlRequest(app, QUERY, { id }, adminToken);
     expect(res.status).toBe(200);
 
     type PersonShape = {
@@ -347,7 +349,7 @@ describe('Person create → get → delete (e2e)', () => {
         deletePerson(id: $id)
       }
     `;
-    const del = await gqlRequest(app, DELETE, { id });
+    const del = await gqlRequest(app, DELETE, { id }, adminToken);
     expect(del.status).toBe(200);
     const delBody = del.body as unknown as GraphQLResponse<{
       deletePerson: boolean;
@@ -362,7 +364,7 @@ describe('Person create → get → delete (e2e)', () => {
       app,
       testData.name,
       testData.email,
-      undefined,
+      adminToken,
       createdPersonIds,
     );
 
@@ -370,12 +372,12 @@ describe('Person create → get → delete (e2e)', () => {
     expect(created.type).toBe('EMAIL');
 
     // find (basic fields only)
-    const person = await findTestPerson(app, created.id);
+    const person = await findTestPerson(app, created.id, adminToken);
     expect(person?.id).toBe(created.id);
     console.log('person data:', person);
 
     // delete using helper
-    const deleted = await deleteTestPerson(app, created.id);
+    const deleted = await deleteTestPerson(app, created.id, adminToken);
     expect(deleted).toBe(true);
 
     // Remove from tracking since we manually deleted
@@ -406,7 +408,7 @@ describe('Person create → get → delete (e2e)', () => {
       app,
       customData.name,
       customData.email,
-      undefined,
+      adminToken,
       createdPersonIds,
     );
 

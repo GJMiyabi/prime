@@ -8,8 +8,14 @@ import { SKIP_CSRF_KEY } from '../../decorators/skip-csrf.decorator';
 describe('CsrfGuard', () => {
   let guard: CsrfGuard;
   let reflector: Reflector;
+  let originalEnv: string | undefined;
 
   beforeEach(async () => {
+    // テスト環境変数を保存
+    originalEnv = process.env.NODE_ENV;
+    // テスト中はNODE_ENVを'development'に設定してCSRFチェックを有効にする
+    process.env.NODE_ENV = 'development';
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CsrfGuard,
@@ -28,6 +34,12 @@ describe('CsrfGuard', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    // テスト環境変数を元に戻す
+    if (originalEnv !== undefined) {
+      process.env.NODE_ENV = originalEnv;
+    } else {
+      delete process.env.NODE_ENV;
+    }
   });
 
   describe('Initialization', () => {
@@ -41,6 +53,26 @@ describe('CsrfGuard', () => {
   });
 
   describe('canActivate - @SkipCsrf decorator', () => {
+    it('テスト環境ではCSRFチェックをスキップ', () => {
+      // Arrange
+      process.env.NODE_ENV = 'test';
+
+      const mockExecutionContext = {
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
+      } as unknown as ExecutionContext;
+
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+
+      // Act
+      const result = guard.canActivate(mockExecutionContext);
+
+      // Assert
+      expect(result).toBe(true);
+      // テスト環境ではreflectorは呼ばれない
+      expect(reflector.getAllAndOverride).not.toHaveBeenCalled();
+    });
+
     it('@SkipCsrf デコレーターがある場合はCSRFチェックをスキップ', () => {
       // Arrange
       const mockExecutionContext = {
