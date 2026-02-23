@@ -230,7 +230,10 @@ describe('FacilityQueryRepository', () => {
           isActive: true,
           contactAddress: [],
           persons: [],
-          organization: { id: '123e4567-e89b-12d3-a456-426614174007', name: 'Org' },
+          organization: {
+            id: '123e4567-e89b-12d3-a456-426614174007',
+            name: 'Org',
+          },
         });
 
         // Act
@@ -311,7 +314,9 @@ describe('FacilityQueryRepository', () => {
 
       it('organizationIdでフィルタできる', async () => {
         // Arrange
-        const filters = { organizationId: new Id('123e4567-e89b-12d3-a456-426614174007') };
+        const filters = {
+          organizationId: new Id('123e4567-e89b-12d3-a456-426614174007'),
+        };
         mockPrismaClient.facility.findMany.mockResolvedValue([]);
 
         // Act
@@ -357,7 +362,10 @@ describe('FacilityQueryRepository', () => {
       it('personIdsでフィルタできる', async () => {
         // Arrange
         const filters = {
-          personIds: [new Id('223e4567-e89b-12d3-a456-426614174001'), new Id('223e4567-e89b-12d3-a456-426614174002')],
+          personIds: [
+            new Id('223e4567-e89b-12d3-a456-426614174001'),
+            new Id('223e4567-e89b-12d3-a456-426614174002'),
+          ],
         };
         mockPrismaClient.facility.findMany.mockResolvedValue([]);
 
@@ -370,7 +378,10 @@ describe('FacilityQueryRepository', () => {
             persons: {
               some: {
                 id: {
-                  in: ['223e4567-e89b-12d3-a456-426614174001', '223e4567-e89b-12d3-a456-426614174002'],
+                  in: [
+                    '223e4567-e89b-12d3-a456-426614174001',
+                    '223e4567-e89b-12d3-a456-426614174002',
+                  ],
                 },
               },
             },

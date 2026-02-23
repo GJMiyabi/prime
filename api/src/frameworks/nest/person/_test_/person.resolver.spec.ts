@@ -1,11 +1,9 @@
-import { Test } from '@nestjs/testing';
 import {
   PersonMutationResolver,
   PersonQueryResolver,
 } from '../person.resolver';
 import { IPersonInputPort } from 'src/usecases/person/input-port';
 import { ContactType } from 'src/domains/type/contact';
-import { PrincipalKind } from 'src/domains/type/principal-kind';
 
 describe('PersonMutationResolver', () => {
   let mutationResolver: PersonMutationResolver;
@@ -143,9 +141,9 @@ describe('PersonMutationResolver', () => {
         };
 
         // Act & Assert
-        await expect(
-          mutationResolver.saveAdminPerson(input),
-        ).rejects.toThrow('name field is required and must be a string');
+        await expect(mutationResolver.saveAdminPerson(input)).rejects.toThrow(
+          'name field is required and must be a string',
+        );
         expect(mockPersonInputPort.createAdmin).not.toHaveBeenCalled();
       });
 
@@ -158,9 +156,9 @@ describe('PersonMutationResolver', () => {
         };
 
         // Act & Assert
-        await expect(
-          mutationResolver.saveAdminPerson(input),
-        ).rejects.toThrow('name field is required and must be a string');
+        await expect(mutationResolver.saveAdminPerson(input)).rejects.toThrow(
+          'name field is required and must be a string',
+        );
         expect(mockPersonInputPort.createAdmin).not.toHaveBeenCalled();
       });
 
@@ -172,9 +170,9 @@ describe('PersonMutationResolver', () => {
         };
 
         // Act & Assert
-        await expect(
-          mutationResolver.saveAdminPerson(input),
-        ).rejects.toThrow('value field is required and must be a string');
+        await expect(mutationResolver.saveAdminPerson(input)).rejects.toThrow(
+          'value field is required and must be a string',
+        );
         expect(mockPersonInputPort.createAdmin).not.toHaveBeenCalled();
       });
 
@@ -187,9 +185,9 @@ describe('PersonMutationResolver', () => {
         };
 
         // Act & Assert
-        await expect(
-          mutationResolver.saveAdminPerson(input),
-        ).rejects.toThrow('value field is required and must be a string');
+        await expect(mutationResolver.saveAdminPerson(input)).rejects.toThrow(
+          'value field is required and must be a string',
+        );
         expect(mockPersonInputPort.createAdmin).not.toHaveBeenCalled();
       });
 
@@ -201,9 +199,9 @@ describe('PersonMutationResolver', () => {
         };
 
         // Act & Assert
-        await expect(
-          mutationResolver.saveAdminPerson(input),
-        ).rejects.toThrow('type field is required and must be a string');
+        await expect(mutationResolver.saveAdminPerson(input)).rejects.toThrow(
+          'type field is required and must be a string',
+        );
         expect(mockPersonInputPort.createAdmin).not.toHaveBeenCalled();
       });
 
@@ -216,9 +214,9 @@ describe('PersonMutationResolver', () => {
         };
 
         // Act & Assert
-        await expect(
-          mutationResolver.saveAdminPerson(input),
-        ).rejects.toThrow('type field is required and must be a string');
+        await expect(mutationResolver.saveAdminPerson(input)).rejects.toThrow(
+          'type field is required and must be a string',
+        );
         expect(mockPersonInputPort.createAdmin).not.toHaveBeenCalled();
       });
 
@@ -233,9 +231,7 @@ describe('PersonMutationResolver', () => {
         mockPersonInputPort.createAdmin.mockRejectedValue(originalError);
 
         // Act & Assert
-        await expect(
-          mutationResolver.saveAdminPerson(input),
-        ).rejects.toThrow(
+        await expect(mutationResolver.saveAdminPerson(input)).rejects.toThrow(
           'Failed to create admin person: Database connection failed',
         );
         expect(mockPersonInputPort.createAdmin).toHaveBeenCalled();
@@ -251,9 +247,9 @@ describe('PersonMutationResolver', () => {
         mockPersonInputPort.createAdmin.mockRejectedValue('String error');
 
         // Act & Assert
-        await expect(
-          mutationResolver.saveAdminPerson(input),
-        ).rejects.toThrow('Failed to create admin person: Unknown error');
+        await expect(mutationResolver.saveAdminPerson(input)).rejects.toThrow(
+          'Failed to create admin person: Unknown error',
+        );
         expect(mockPersonInputPort.createAdmin).toHaveBeenCalled();
       });
     });
@@ -453,9 +449,7 @@ describe('PersonMutationResolver', () => {
       it('削除処理で不明なエラーが発生した場合、デフォルトメッセージでスローする', async () => {
         // Arrange
         const id = '123e4567-e89b-12d3-a456-426614174001';
-        mockPersonInputPort.delete.mockRejectedValue(
-          'Unknown deletion error',
-        );
+        mockPersonInputPort.delete.mockRejectedValue('Unknown deletion error');
 
         // Act & Assert
         await expect(mutationResolver.deletePerson(id)).rejects.toThrow(
@@ -526,7 +520,9 @@ describe('PersonQueryResolver', () => {
           id: '123e4567-e89b-12d3-a456-426614174001',
           name: 'John Doe',
           contacts: [{ value: 'john@example.com', type: ContactType.EMAIL }],
-          facilities: [{ id: '423e4567-e89b-12d3-a456-426614174001', name: 'Facility A' }],
+          facilities: [
+            { id: '423e4567-e89b-12d3-a456-426614174001', name: 'Facility A' },
+          ],
           organization: { id: 'org-1', name: 'Organization A' },
         };
         mockPersonInputPort.find.mockResolvedValue(mockPerson);

@@ -43,7 +43,7 @@ describe('PrismaClientSingleton', () => {
       it('複数回アクセスしてもPrismaClientは1回しか作成されない（シングルトンパターン）', () => {
         // Act
         for (let i = 0; i < 10; i++) {
-          PrismaClientSingleton.instance;
+          void PrismaClientSingleton.instance;
         }
 
         // Assert

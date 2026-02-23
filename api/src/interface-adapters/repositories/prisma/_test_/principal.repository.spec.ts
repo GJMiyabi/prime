@@ -58,7 +58,9 @@ describe('PrincipalCommandRepository', () => {
         });
         expect(result.getId()).toBe('123e4567-e89b-12d3-a456-426614174004');
         expect(result.getKind()).toBe(PrincipalKind.ADMIN);
-        expect(result.getPersonId()).toBe('123e4567-e89b-12d3-a456-426614174001');
+        expect(result.getPersonId()).toBe(
+          '123e4567-e89b-12d3-a456-426614174001',
+        );
       });
 
       it('新しいPrincipal（TEACHER）を作成できる', async () => {
@@ -285,7 +287,9 @@ describe('PrincipalQueryRepository', () => {
         expect(result).toBeDefined();
         expect(result?.getId()).toBe('123e4567-e89b-12d3-a456-426614174004');
         expect(result?.getKind()).toBe(PrincipalKind.ADMIN);
-        expect(result?.getPersonId()).toBe('123e4567-e89b-12d3-a456-426614174001');
+        expect(result?.getPersonId()).toBe(
+          '123e4567-e89b-12d3-a456-426614174001',
+        );
       });
 
       it('personIdでPrincipal（TEACHER）を検索できる', async () => {

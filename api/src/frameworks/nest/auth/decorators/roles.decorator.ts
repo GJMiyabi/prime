@@ -1,7 +1,7 @@
 /**
  * Roles デコレーター
  * GraphQL Resolver に必要な役割を指定
- * 
+ *
  * 使用例:
  * ```typescript
  * @Mutation('deletePerson')

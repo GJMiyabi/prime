@@ -162,7 +162,9 @@ export class PersonMutationResolver {
 
   @Mutation('deletePerson')
   @Roles(PrincipalKind.ADMIN) // ✅ ADMINのみ削除可能
-  async deletePerson(@Args('id', SanitizationPipe) id: string): Promise<boolean> {
+  async deletePerson(
+    @Args('id', SanitizationPipe) id: string,
+  ): Promise<boolean> {
     try {
       await this.personInputport.delete(id);
       return true;

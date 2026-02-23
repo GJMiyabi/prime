@@ -71,7 +71,9 @@ describe('ContactAddressCommandRepository', () => {
         expect(result.getId()).toBe('123e4567-e89b-12d3-a456-426614174005');
         expect(result.getType()).toBe(ContactType.EMAIL);
         expect(result.getValue()).toBe('test@example.com');
-        expect(result.getPersonId()).toBe('123e4567-e89b-12d3-a456-426614174001');
+        expect(result.getPersonId()).toBe(
+          '123e4567-e89b-12d3-a456-426614174001',
+        );
       });
 
       it('新しいContactAddressを作成できる（facilityId指定）', async () => {
@@ -97,7 +99,9 @@ describe('ContactAddressCommandRepository', () => {
         const result = await repository.create(contactAddress);
 
         // Assert
-        expect(result.getFacilityId()).toBe('123e4567-e89b-12d3-a456-426614174006');
+        expect(result.getFacilityId()).toBe(
+          '123e4567-e89b-12d3-a456-426614174006',
+        );
         expect(result.getType()).toBe(ContactType.PHONE);
       });
 
@@ -124,7 +128,9 @@ describe('ContactAddressCommandRepository', () => {
         const result = await repository.create(contactAddress);
 
         // Assert
-        expect(result.getOrganizationId()).toBe('123e4567-e89b-12d3-a456-426614174007');
+        expect(result.getOrganizationId()).toBe(
+          '123e4567-e89b-12d3-a456-426614174007',
+        );
         expect(result.getType()).toBe(ContactType.ADDRESS);
       });
     });
@@ -381,7 +387,10 @@ describe('ContactAddressCommandRepository', () => {
         expect(mockPrismaClient.contactAddress.findMany).toHaveBeenCalledWith({
           where: {
             id: {
-              in: ['323e4567-e89b-12d3-a456-426614174001', '323e4567-e89b-12d3-a456-426614174002'],
+              in: [
+                '323e4567-e89b-12d3-a456-426614174001',
+                '323e4567-e89b-12d3-a456-426614174002',
+              ],
             },
           },
         });
@@ -624,11 +633,17 @@ describe('ContactAddressQueryRepository', () => {
         ]);
 
         // Act
-        const result = await repository.findByContactType(contactType, personId);
+        const result = await repository.findByContactType(
+          contactType,
+          personId,
+        );
 
         // Assert
         expect(mockPrismaClient.contactAddress.findMany).toHaveBeenCalledWith({
-          where: { type: ContactType.EMAIL, personId: '123e4567-e89b-12d3-a456-426614174001' },
+          where: {
+            type: ContactType.EMAIL,
+            personId: '123e4567-e89b-12d3-a456-426614174001',
+          },
           orderBy: { id: 'asc' },
         });
         expect(result).toHaveLength(1);
@@ -644,9 +659,9 @@ describe('ContactAddressQueryRepository', () => {
         );
 
         // Act & Assert
-        await expect(
-          repository.findByContactType(contactType),
-        ).rejects.toThrow('Query failed');
+        await expect(repository.findByContactType(contactType)).rejects.toThrow(
+          'Query failed',
+        );
       });
     });
   });
@@ -679,7 +694,9 @@ describe('ContactAddressQueryRepository', () => {
 
       it('personIdでフィルタできる', async () => {
         // Arrange
-        const filters = { personId: new Id('123e4567-e89b-12d3-a456-426614174001') };
+        const filters = {
+          personId: new Id('123e4567-e89b-12d3-a456-426614174001'),
+        };
         mockPrismaClient.contactAddress.findMany.mockResolvedValue([]);
 
         // Act

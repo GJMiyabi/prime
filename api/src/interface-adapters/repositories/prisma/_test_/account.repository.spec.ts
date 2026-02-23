@@ -67,7 +67,9 @@ describe('AccountCommandRepository', () => {
         });
         expect(result.getId()).toBe('123e4567-e89b-12d3-a456-426614174003');
         expect(result.getUsername()).toBe('testuser');
-        expect(result.getPrincipalId()).toBe('123e4567-e89b-12d3-a456-426614174004');
+        expect(result.getPrincipalId()).toBe(
+          '123e4567-e89b-12d3-a456-426614174004',
+        );
         expect(result.getIsActive()).toBe(true);
       });
 
@@ -115,9 +117,7 @@ describe('AccountCommandRepository', () => {
           username: 'testuser',
           isActive: true,
         });
-        (argon2.hash as jest.Mock).mockRejectedValue(
-          new Error('Hash failed'),
-        );
+        (argon2.hash as jest.Mock).mockRejectedValue(new Error('Hash failed'));
 
         // Act & Assert
         await expect(repository.create(account)).rejects.toThrow('Hash failed');
@@ -230,9 +230,7 @@ describe('AccountCommandRepository', () => {
           username: 'testuser',
           isActive: true,
         });
-        (argon2.hash as jest.Mock).mockRejectedValue(
-          new Error('Hash failed'),
-        );
+        (argon2.hash as jest.Mock).mockRejectedValue(new Error('Hash failed'));
 
         // Act & Assert
         await expect(repository.update(account)).rejects.toThrow('Hash failed');
@@ -336,7 +334,9 @@ describe('AccountQueryRepository', () => {
         expect(result).toBeDefined();
         expect(result?.getId()).toBe('123e4567-e89b-12d3-a456-426614174003');
         expect(result?.getUsername()).toBe('testuser');
-        expect(result?.getPrincipalId()).toBe('123e4567-e89b-12d3-a456-426614174004');
+        expect(result?.getPrincipalId()).toBe(
+          '123e4567-e89b-12d3-a456-426614174004',
+        );
         expect(result?.getIsActive()).toBe(true);
       });
 
@@ -365,9 +365,9 @@ describe('AccountQueryRepository', () => {
         );
 
         // Act & Assert
-        await expect(
-          repository.findByPrincipalId(principalId),
-        ).rejects.toThrow('Database connection failed');
+        await expect(repository.findByPrincipalId(principalId)).rejects.toThrow(
+          'Database connection failed',
+        );
       });
     });
   });

@@ -182,6 +182,7 @@ describe('PerformanceHealthIndicator', () => {
     it('should handle non-Error objects', async () => {
       // Arrange
       mockPerformanceInterceptor.getStatistics.mockImplementation(() => {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw 'String error';
       });
       const key = 'performance';

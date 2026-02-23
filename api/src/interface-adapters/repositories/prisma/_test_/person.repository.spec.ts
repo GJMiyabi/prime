@@ -64,7 +64,9 @@ describe('PersonCommandRepository', () => {
             name: 'John Doe',
           },
         });
-        expect(result.getId().value).toBe('123e4567-e89b-12d3-a456-426614174001');
+        expect(result.getId().value).toBe(
+          '123e4567-e89b-12d3-a456-426614174001',
+        );
         expect(result.getName()).toBe('John Doe');
       });
     });
@@ -262,8 +264,12 @@ describe('PersonQueryRepository', () => {
         // Assert
         expect(mockPrismaClient.person.findMany).toHaveBeenCalledWith();
         expect(result).toHaveLength(2);
-        expect(result[0].getId().value).toBe('223e4567-e89b-12d3-a456-426614174001');
-        expect(result[1].getId().value).toBe('223e4567-e89b-12d3-a456-426614174002');
+        expect(result[0].getId().value).toBe(
+          '223e4567-e89b-12d3-a456-426614174001',
+        );
+        expect(result[1].getId().value).toBe(
+          '223e4567-e89b-12d3-a456-426614174002',
+        );
       });
 
       it('Personがいない場合、空配列を返す', async () => {
@@ -312,7 +318,9 @@ describe('PersonQueryRepository', () => {
           include: undefined,
         });
         expect(result).toBeDefined();
-        expect(result?.getId().value).toBe('123e4567-e89b-12d3-a456-426614174001');
+        expect(result?.getId().value).toBe(
+          '123e4567-e89b-12d3-a456-426614174001',
+        );
         expect(result?.getName()).toBe('John Doe');
       });
 
